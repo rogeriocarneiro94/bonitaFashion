@@ -33,7 +33,6 @@ public class BonitaFashionApplication {
                 admin.setSenha("123"); // A senha em texto puro que será criptografada pelo serviço
                 admin.setDataAdmissao(LocalDate.now());
 
-
                 funcionarioService.salvar(admin);
                 System.out.println("Usuário administrador criado com sucesso!");
             }
