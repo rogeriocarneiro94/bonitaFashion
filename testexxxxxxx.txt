@@ -1,0 +1,166 @@
+Teste 1: Autenticação e Autorização (O "Porteiro")
+Nosso objetivo aqui é garantir que o login funciona e que os diferentes "cargos" (Gerente vs. Vendedor) têm os acessos corretos.
+
+1.1 Login do Administrador
+Requisição: POST http://localhost:9090/api/auth/login
+
+Body (JSON):
+
+JSON
+
+{
+    "login": "admin",
+    "senha": "123456"
+}
+Resultado Esperado: 200 OK e um JSON com o token.
+
+Ação: Copie o token. Vamos chamá-lo de [TOKEN_ADMIN].
+
+1.2 Teste de Permissão de Gerente (Deve Funcionar)
+Requisição: GET http://localhost:9090/api/funcionarios
+
+Authorization: Bearer Token (cole o [TOKEN_ADMIN])
+
+Resultado Esperado: 200 OK e uma lista contendo o usuário "Administrador". (Isso testa o hasRole('GERENTE')).
+
+1.3 Criar um Vendedor (Teste de Gerente)
+Requisição: POST http://localhost:9090/api/funcionarios
+
+Authorization: Bearer Token ([TOKEN_ADMIN])
+
+Body (JSON):
+
+JSON
+
+{
+    "nome": "Vendedor Teste",
+    "cpf": "111.222.333-44",
+    "cargo": "VENDEDOR",
+    "login": "vendedor",
+    "senha": "123"
+}
+Resultado Esperado: 201 Created.
+
+1.4 Login do Vendedor
+Requisição: POST http://localhost:9090/api/auth/login
+
+Body (JSON):
+
+JSON
+
+{
+    "login": "vendedor",
+    "senha": "123"
+}
+Resultado Esperado: 200 OK e um novo token.
+
+Ação: Copie este novo token. Vamos chamá-lo de [TOKEN_VENDEDOR].
+
+1.5 Teste de Permissão de Vendedor (Deve Falhar)
+Requisição: GET http://localhost:9090/api/funcionarios
+
+Authorization: Bearer Token (use o [TOKEN_VENDEDOR])
+
+Resultado Esperado: 403 Forbidden. Isso prova que o "Vendedor" não pode acessar endpoints de "Gerente".
+
+1.6 Teste de Permissão Mista (Deve Funcionar)
+Requisição: GET http://localhost:9090/api/clientes
+
+Authorization: Bearer Token ([TOKEN_VENDEDOR])
+
+Resultado Esperado: 200 OK. (Isso testa o hasAnyRole('GERENTE', 'VENDEDOR')).
+
+📦 Teste 2: CRUD e Lógica de Negócio (Preparação)
+Agora, vamos usar o [TOKEN_ADMIN] para cadastrar os itens que precisamos para o teste de venda.
+
+2.1 Criar Categoria
+Requisição: POST http://localhost:9090/api/categorias
+
+Authorization: Bearer Token ([TOKEN_ADMIN])
+
+Body (JSON): {"nome": "Calças"}
+
+Resultado Esperado: 201 Created. Anote o id (provavelmente 1).
+
+2.2 Criar Produto (com Estoque)
+Requisição: POST http://localhost:9090/api/produtos
+
+Authorization: Bearer Token ([TOKEN_ADMIN])
+
+Body (JSON): (Assumindo que o id da categoria "Calças" é 1)
+
+JSON
+
+{
+    "nome": "Calça Jeans Slim",
+    "precoVarejo": 150.00,
+    "precoAtacado": 90.00,
+    "quantidadeEstoque": 10,
+    "categoria": {
+        "id": 1
+    }
+}
+Resultado Esperado: 201 Created. Anote o id (provavelmente 1).
+
+2.3 Criar Cliente
+Requisição: POST http://localhost:9090/api/clientes
+
+Authorization: Bearer Token ([TOKEN_VENDEDOR] ou [TOKEN_ADMIN])
+
+Body (JSON): {"nome": "Cliente de Teste", "cpfCnpj": "12345678900"}
+
+Resultado Esperado: 201 Created. Anote o id (provavelmente 1).
+
+💸 Teste 3: Lógica de Venda (O Teste Final)
+Este é o teste mais importante. Vamos usar o [TOKEN_VENDEDOR].
+
+3.1 Venda com Estoque (Caminho Feliz)
+Requisição: POST http://localhost:9090/api/vendas
+
+Authorization: Bearer Token ([TOKEN_VENDEDOR])
+
+Body (JSON): (Usando os IDs que anotamos)
+
+JSON
+
+{
+    "clienteId": 1,
+    "tipoVenda": "VAREJO",
+    "formaPagamento": "PIX",
+    "itens": [
+        {
+            "produtoId": 1,
+            "quantidade": 2
+        }
+    ]
+}
+Resultado Esperado: 201 Created. A resposta deve mostrar a venda completa, com o valorTotal calculado (ex: 150.00 * 2 = 300.00).
+
+3.2 Verificação de Estoque (Pós-Venda)
+Requisição: GET http://localhost:9090/api/produtos/1 (ou o ID do produto que você criou)
+
+Authorization: Bearer Token ([TOKEN_ADMIN])
+
+Resultado Esperado: 200 OK. O JSON do produto deve agora mostrar "quantidadeEstoque": 8 (pois começou com 10 e vendemos 2).
+
+3.3 Venda Sem Estoque (Caminho de Erro)
+Requisição: POST http://localhost:9090/api/vendas
+
+Authorization: Bearer Token ([TOKEN_VENDEDOR])
+
+Body (JSON): (O estoque agora é 8. Vamos tentar comprar 9)
+
+JSON
+
+{
+    "clienteId": 1,
+    "tipoVenda": "VAREJO",
+    "formaPagamento": "Dinheiro",
+    "itens": [
+        {
+            "produtoId": 1,
+            "quantidade": 9
+        }
+    ]
+}
+Resultado Esperado: 400 Bad Request. O corpo da resposta deve conter a mensagem de erro que programamos, algo como: "Estoque insuficiente para o produto: Calça Jeans Slim".
