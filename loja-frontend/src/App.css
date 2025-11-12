@@ -40,3 +40,33 @@
 .read-the-docs {
   color: #888;
 }
+
+.ReactModal__Content {
+  color: black;
+}
+
+/* Estiliza os inputs e selects para voltarem ao normal */
+.ReactModal__Content input,
+.ReactModal__Content select {
+  color: black;            /* Texto digitado fica preto */
+  background-color: white; /* Fundo do campo fica branco */
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: 90%;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+/* Estiliza os botões */
+.ReactModal__Content button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.ReactModal__Content button[type="button"] {
+  background-color: #6c757d; /* Botão "Cancelar" cinza */
+}

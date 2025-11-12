@@ -25,16 +25,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         Funcionario funcionario = funcionarioRepository.findByLogin(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o login: " + username));
 
-        // --- ATUALIZAÇÃO IMPORTANTE AQUI ---
-        // Transforma o "cargo" (ex: "Gerente") em uma permissão que o Spring entende (ex: "ROLE_GERENTE")
+        String cargo = funcionario.getCargo() != null ? funcionario.getCargo().trim().toUpperCase() : "";
+
         List<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + funcionario.getCargo().toUpperCase())
+                new SimpleGrantedAuthority("ROLE_" + cargo)
         );
 
         return new User(
                 funcionario.getLogin(),
                 funcionario.getSenha(),
-                authorities // <- Antes era Collections.emptyList()
+                authorities
         );
     }
 }

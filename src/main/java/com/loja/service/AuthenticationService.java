@@ -20,7 +20,7 @@ public class AuthenticationService {
     private final UserDetailsService userDetailsService;
 
     public AuthResponse login(AuthRequest request) {
-        // 1. Autentica o usuário usando o AuthenticationManager do Spring
+        // 1. Autentica o usuário (verifica se login e senha batem)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getLogin(),
@@ -29,9 +29,10 @@ public class AuthenticationService {
         );
 
         // 2. Se a autenticação foi bem-sucedida, busca os detalhes do usuário
+        // (Isso chama o seu CustomUserDetailsService, que adiciona a ROLE_GERENTE)
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLogin());
 
-        // 3. Gera o token JWT para esse usuário
+        // 3. Gera o token JWT USANDO os userDetails (que agora contêm a ROLE)
         String token = jwtService.generateToken(userDetails);
 
         // 4. Retorna o token
