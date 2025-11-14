@@ -1,63 +1,54 @@
+// Local: src/pages/LoginPage.jsx
 import React, { useState } from 'react';
-import axios from 'axios';
-import '../App.css';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/api';
+import './LoginPage.css'; // <-- 1. IMPORTE O NOVO CSS
 
 function LoginPage() {
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const dadosLogin = {
-      login: login,
-      senha: senha,
-    };
+  const handleLogin = async (event) => {
+    event.preventDefault(); // Impede o recarregamento da página
+    setError(''); // Limpa mensagens de erro anteriores
 
     try {
-      // 1. Faz a chamada para o backend
-      const response = await axios.post('http://localhost:9090/api/auth/login', dadosLogin);
-
-      // 2. Salva o token
+      const response = await api.post('/auth/login', { login, senha });
       localStorage.setItem('token', response.data.token);
-
-      alert('Login bem-sucedido!');
-
-      // 3. Redireciona o usuário para o dashboard
-      window.location.href = '/dashboard';
-
-    } catch (error) {
-      console.error('Erro no login:', error);
-      alert('Erro: Login ou senha incorretos.');
+      navigate('/dashboard'); // Redireciona para o dashboard após o login
+    } catch (err) {
+      // Exibe uma mensagem de erro mais amigável
+      setError('Login ou senha inválidos. Tente novamente.');
     }
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Login - Bonita Fashion</h1>
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label>Login:</label>
-            <input
-              type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label>Senha:</label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-          </div>
+    // 2. Adicione a classe para o container da página
+    <div className="login-page-container">
+      {/* 3. Adicione a classe para o card do formulário */}
+      <div className="login-form-card">
+        <h2>Login - Bonita Fashion</h2>
+        <form onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Login"
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            required
+          />
           <button type="submit">Entrar</button>
+          {error && <p className="error-message">{error}</p>}
         </form>
-      </header>
+      </div>
     </div>
   );
 }

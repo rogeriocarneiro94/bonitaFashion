@@ -18,6 +18,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    // Lembre-se de mover isso para o application.properties!
     private static final String SECRET_KEY = "suachavesuperlongaeseguraquevocecolocaranaspropriedades";
 
     public String extractUsername(String token) {
@@ -29,6 +30,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    // --- LÓGICA CORRIGIDA (Adiciona permissões ao token) ---
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("authorities", userDetails.getAuthorities());
@@ -37,10 +39,10 @@ public class JwtService {
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
-                .claims(extraClaims)
+                .claims(extraClaims) // .claims() em vez de .setClaims()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 horas
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -58,14 +60,14 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    // --- LÓGICA CORRIGIDA (Nova sintaxe do jjwt) ---
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey()) // agora aceita SecretKey
+                .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);

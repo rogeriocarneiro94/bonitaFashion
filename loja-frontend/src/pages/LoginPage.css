@@ -1,0 +1,57 @@
+/* Local: src/pages/LoginPage.css */
+
+.login-page-container {
+  display: flex;
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: center;     /* Centraliza verticalmente */
+  min-height: 100vh;       /* Ocupa a altura total da viewport */
+  background-color: #fff5ee;
+}
+
+.login-form-card {
+  background-color: #ffffff; /* Fundo branco para o card do formulário */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  width: 100%;
+  max-width: 400px; /* Largura máxima do card */
+  text-align: center;
+}
+
+.login-form-card h2 {
+  color: #34495e; /* Título em tom de cinza-azul */
+  margin-bottom: 30px;
+  font-size: 2em;
+}
+
+.login-form-card input {
+  width: calc(100% - 20px); /* Largura total menos padding */
+  padding: 12px 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ced4da; /* Borda suave */
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box; /* Inclui padding na largura */
+}
+
+.login-form-card button {
+  width: calc(100% - 20px);
+  padding: 12px 10px;
+  background-color: #4CAF50; /* Verde amigável */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease;
+}
+
+.login-form-card button:hover {
+  background-color: #45a049; /* Escurece um pouco ao passar o mouse */
+}
+
+.login-form-card .error-message {
+  color: #dc3545; /* Vermelho para mensagens de erro */
+  margin-top: 15px;
+  font-size: 0.9em;
+}

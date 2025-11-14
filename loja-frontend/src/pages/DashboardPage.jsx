@@ -1,36 +1,16 @@
+// Local: src/pages/DashboardPage.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+// Não precisamos mais do 'Link' ou 'handleLogout' aqui
 
 function DashboardPage() {
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  };
-
   return (
     <div>
-      <h1>Dashboard</h1>
-      <p>Bem-vindo ao sistema!</p>
+      <h1>Dashboard Principal</h1>
+      <p>Bem-vindo ao sistema de gestão Bonita Fashion!</p>
 
-      <nav>
-        <ul>
-          <li>
-            <Link to="/dashboard">Início</Link>
-          </li>
-          <li>
-            <Link to="/produtos">Produtos</Link>
-          </li>
-          <li>
-            <Link to="/clientes">Clientes</Link>
-          </li>
-          <li>
-              <Link to="/vendas">Vendas</Link>
-          </li>
-        </ul>
-      </nav>
+      {/* O menu e o botão de sair foram movidos para o Layout.jsx */}
 
-      <button onClick={handleLogout}>Sair (Logout)</button>
+      {/* Você pode adicionar gráficos ou atalhos aqui no futuro */}
     </div>
   );
 }

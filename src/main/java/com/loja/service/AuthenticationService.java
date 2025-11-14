@@ -1,8 +1,9 @@
+// Local: src/main/java/com/loja/service/AuthenticationService.java
 package com.loja.service;
 
-import com.loja.dto.AuthRequest;
-import com.loja.dto.AuthResponse;
-import com.loja.repository.FuncionarioRepository;
+import com.loja.dto.AuthRequest; // (Seu pacote)
+import com.loja.dto.AuthResponse; // (Seu pacote)
+import com.loja.repository.FuncionarioRepository; // (Seu pacote)
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,10 +18,11 @@ public class AuthenticationService {
     private final FuncionarioRepository repository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService; // Deve ser o CustomUserDetailsService
 
+    // --- LÓGICA CORRIGIDA (Garante que UserDetails é usado para gerar o token) ---
     public AuthResponse login(AuthRequest request) {
-        // 1. Autentica o usuário (verifica se login e senha batem)
+        // 1. Autentica (verifica senha)
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getLogin(),
@@ -28,14 +30,13 @@ public class AuthenticationService {
                 )
         );
 
-        // 2. Se a autenticação foi bem-sucedida, busca os detalhes do usuário
-        // (Isso chama o seu CustomUserDetailsService, que adiciona a ROLE_GERENTE)
+        // 2. Busca o usuário COM AS PERMISSÕES (chama o CustomUserDetailsService)
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLogin());
 
-        // 3. Gera o token JWT USANDO os userDetails (que agora contêm a ROLE)
+        // 3. Gera o token usando o UserDetails (que contém a ROLE_GERENTE)
         String token = jwtService.generateToken(userDetails);
 
-        // 4. Retorna o token
+        // 4. Retorna
         return new AuthResponse(token);
     }
 }

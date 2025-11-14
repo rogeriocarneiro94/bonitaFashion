@@ -19,8 +19,8 @@ public class VendaController {
     private final VendaService vendaService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('GERENTE', 'VENDEDOR')") // <-- Corrigido de 'VENDEDDEOR'
-    public ResponseEntity<?> realizarVenda(@RequestBody VendaRequest request) { // <-- MUDANÇA AQUI
+    @PreAuthorize("hasAnyRole('GERENTE', 'VENDEDOR')") // Verifique 'VENDEDOR'
+    public ResponseEntity<?> realizarVenda(@RequestBody VendaRequest request) {
         try {
             Venda novaVenda = vendaService.realizarVenda(request);
             // Retorna 201 Created com o objeto Venda

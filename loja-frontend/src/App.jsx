@@ -1,55 +1,57 @@
 // Local: src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+
+// Nossas Páginas
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProdutoPage from './pages/ProdutoPage';
 import ClientePage from './pages/ClientePage';
 import VendaPage from './pages/VendaPage';
+import FuncionarioPage from './pages/FuncionarioPage';
+
+// Nosso novo Layout
+import Layout from './components/Layout';
+
 import './App.css';
 
-
-function PrivateRoute({ children }) {
+// Componente que verifica se o usuário está logado
+// Se sim, mostra o Layout (que por sua vez mostra a página correta)
+// Se não, redireciona para o Login.
+function PrivateRoute() {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
+  return token ? <Layout /> : <Navigate to="/login" />;
 }
 
 function App() {
   return (
     <BrowserRouter>
+        <Toaster
+                position="top-right" // Posição
+                toastOptions={{
+                  duration: 3000, // Duração de 3 segundos
+                }}
+              />
       <Routes>
-        {/* Rota 1: Login */}
+        {/* Rota 1: Login (pública) */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Rota 2: Dashboard (Protegida) */}
-        <Route
-          path="/dashboard"
-          element={ <PrivateRoute><DashboardPage /></PrivateRoute> }
-        />
+        {/* Rota 2: Rotas Protegidas (privadas) */}
+        <Route path="/" element={<PrivateRoute />}>
+          {/* Essas rotas são "filhas" do Layout (serão renderizadas no <Outlet>) */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/produtos" element={<ProdutoPage />} />
+          <Route path="/clientes" element={<ClientePage />} />
+          <Route path="/vendas" element={<VendaPage />} />
+          <Route path="/funcionarios" element={<FuncionarioPage />} />
 
-        {/* Rota 3: Produtos (Protegida) */}
-        <Route
-          path="/produtos"
-          element={ <PrivateRoute><ProdutoPage /></PrivateRoute> }
-        />
+          {/* Redireciona "/" para "/dashboard" se estiver logado */}
+          <Route index element={<Navigate to="/dashboard" />} />
+        </Route>
 
-        {/* Rota 4: Clientes (Protegida) - NOVA ROTA */}
-        <Route
-          path="/clientes"
-          element={ <PrivateRoute><ClientePage /></PrivateRoute> } // <-- 2. ADICIONE A ROTA
-        />
-
-        {/* Rota 5: Vendas (Protegida) - NOVA ROTA */}
-        <Route
-            path="/vendas"
-            element={ <PrivateRoute><VendaPage /></PrivateRoute> } // <-- 2. ADICIONE A ROTA
-        />
-
-        {/* Rota Padrão */}
-        <Route
-          path="*"
-          element={localStorage.getItem('token') ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
-        />
+        {/* Rota Padrão: Se não achar nada, vai para o login */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );

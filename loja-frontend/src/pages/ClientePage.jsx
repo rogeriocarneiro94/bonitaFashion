@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import Modal from 'react-modal';
+import toast from 'react-hot-toast';
+import ConfirmationModal from '../components/ConfirmationModal'; // Importa o modal de confirmação
 
-// Configuração do Modal (fora do componente)
 Modal.setAppElement('#root');
 
 function ClientePage() {
@@ -12,17 +13,19 @@ function ClientePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Estados para o Modal e Formulário ---
+  // --- Estados do Modal de Formulário ---
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [clienteEmEdicao, setClienteEmEdicao] = useState(null);
-
-  // Estado para os dados do formulário
   const [formData, setFormData] = useState({
     nome: '',
     cpfCnpj: '',
     telefone: '',
     email: ''
   });
+
+  // --- Estados do Modal de Confirmação ---
+  const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
+  const [clienteParaDeletar, setClienteParaDeletar] = useState(null);
 
   // --- Função para buscar os dados ---
   const fetchData = async () => {
@@ -42,22 +45,16 @@ function ClientePage() {
     fetchData();
   }, []);
 
-  // --- Funções para controlar o Modal ---
-
+  // --- Funções para controlar o Modal de Formulário ---
   const abrirModalNovo = () => {
     setClienteEmEdicao(null);
-    setFormData({ // Limpa o formulário
-      nome: '',
-      cpfCnpj: '',
-      telefone: '',
-      email: ''
-    });
+    setFormData({ nome: '', cpfCnpj: '', telefone: '', email: '' });
     setModalIsOpen(true);
   };
 
   const abrirModalEdicao = (cliente) => {
     setClienteEmEdicao(cliente);
-    setFormData({ // Preenche o formulário com dados do cliente
+    setFormData({
       nome: cliente.nome,
       cpfCnpj: cliente.cpfCnpj,
       telefone: cliente.telefone,
@@ -71,8 +68,7 @@ function ClientePage() {
     setClienteEmEdicao(null);
   };
 
-  // --- Funções de Formulário ---
-
+  // --- Função de mudança do formulário ---
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -81,51 +77,50 @@ function ClientePage() {
     }));
   };
 
+  // --- Função de Salvar (Criar ou Atualizar) ---
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-
-    // O payload é simples, idêntico ao formData
     const payload = formData;
-
     try {
       if (clienteEmEdicao) {
-        // Modo de ATUALIZAÇÃO (PUT)
         await api.put(`/clientes/${clienteEmEdicao.id}`, payload);
-        alert('Cliente atualizado com sucesso!');
+        toast.success('Cliente atualizado com sucesso!');
       } else {
-        // Modo de CRIAÇÃO (POST)
         await api.post('/clientes', payload);
-        alert('Cliente criado com sucesso!');
+        toast.success('Cliente criado com sucesso!');
       }
       fecharModal();
-      fetchData(); // Atualiza a lista na tela
-
+      fetchData();
     } catch (err) {
-      // Pega o erro do backend (ex: "CPF/CNPJ já cadastrado")
       const errorMsg = err.response ? err.response.data : err.message;
-      alert(`Erro: ${errorMsg}`);
+      toast.error(`Erro: ${errorMsg}`);
     }
   };
 
-  // --- Função DELETAR ---
+  // --- Funções de DELETAR (com modal de confirmação) ---
+  const handleAbrirConfirmDelete = (clienteId) => {
+    setClienteParaDeletar(clienteId);
+    setConfirmModalIsOpen(true);
+  };
 
-  const handleDelete = async (clienteId) => {
-    if (!window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
     try {
-      // (Lembre-se que só Gerente pode deletar, então isso vai falhar se logado como Vendedor)
-      await api.delete(`/clientes/${clienteId}`);
-      alert('Cliente excluído com sucesso!');
-      // Atualiza a lista na tela
+      await api.delete(`/clientes/${clienteParaDeletar}`);
+      toast.success('Cliente excluído com sucesso!');
+
       setClientes(prevClientes =>
-        prevClientes.filter(cliente => cliente.id !== clienteId)
+        prevClientes.filter(cliente => cliente.id !== clienteParaDeletar)
       );
-    } catch (err) {
+    } catch (err)
+    {
       const errorMsg = err.response ? (err.response.status === 403 ? "Você não tem permissão para excluir." : err.response.data) : err.message;
-      alert('Erro ao excluir cliente: ' + errorMsg);
+      toast.error('Erro ao excluir cliente: ' + errorMsg);
+    } finally {
+      setConfirmModalIsOpen(false);
+      setClienteParaDeletar(null);
     }
   };
+
 
   // --- Renderização ---
   if (loading) return <div>Carregando...</div>;
@@ -136,7 +131,7 @@ function ClientePage() {
       <h2>Gerenciamento de Clientes</h2>
       <button onClick={abrirModalNovo}>Adicionar Novo Cliente</button>
 
-      {/* --- O Modal de Cliente --- */}
+      {/* --- O Modal de Formulário --- */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={fecharModal}
@@ -173,6 +168,15 @@ function ClientePage() {
         </form>
       </Modal>
 
+      {/* --- O Modal de Confirmação --- */}
+      <ConfirmationModal
+        isOpen={confirmModalIsOpen}
+        onClose={() => setConfirmModalIsOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita."
+      />
+
       {/* --- Tabela de Clientes --- */}
       <table>
         <thead>
@@ -196,7 +200,7 @@ function ClientePage() {
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(cliente.id)}
+                  onClick={() => handleAbrirConfirmDelete(cliente.id)}
                   style={{ backgroundColor: '#dc3545', marginLeft: '5px' }}
                 >
                   Excluir

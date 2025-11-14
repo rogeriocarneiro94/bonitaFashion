@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import Modal from 'react-modal';
+import toast from 'react-hot-toast';
+import ConfirmationModal from '../components/ConfirmationModal'; // Importa o modal de confirmação
 
 Modal.setAppElement('#root');
 
@@ -11,14 +13,10 @@ function ProdutoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Estados para o Modal ---
+  // --- Estados para o Modal de Formulário ---
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [categorias, setCategorias] = useState([]);
-
-  // 'produtoEmEdicao' guarda o produto que está sendo editado (ou null se for novo)
   const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
-
-  // 'formData' guarda os dados do formulário
   const [formData, setFormData] = useState({
     nome: '',
     precoVarejo: 0,
@@ -28,7 +26,11 @@ function ProdutoPage() {
     categoriaId: ''
   });
 
-  // --- Função para buscar os dados iniciais ---
+  // --- Estados para o Modal de Confirmação ---
+  const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
+  const [produtoParaDeletar, setProdutoParaDeletar] = useState(null);
+
+  // --- Função para buscar os dados iniciais (Produtos E Categorias) ---
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -36,11 +38,14 @@ function ProdutoPage() {
         api.get('/produtos'),
         api.get('/categorias')
       ]);
+
       setProdutos(produtosRes.data);
       setCategorias(categoriasRes.data);
-      if (categoriasRes.data.length > 0) {
+
+      if (categoriasRes.data.length > 0 && !formData.categoriaId) {
         setFormData(prev => ({ ...prev, categoriaId: categoriasRes.data[0].id }));
       }
+
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -48,45 +53,37 @@ function ProdutoPage() {
     }
   };
 
+  // Roda a busca de dados quando a página carrega
   useEffect(() => {
     fetchData();
   }, []);
 
-  // --- Funções para controlar o Modal ---
-
-  // 1. Abre o modal para CRIAR um novo produto
+  // --- Funções para controlar o Modal de Formulário ---
   const abrirModalNovo = () => {
-    setProdutoEmEdicao(null); // Limpa o estado de edição
-    // Reseta o formulário para valores padrão
+    setProdutoEmEdicao(null);
     setFormData({
-      nome: '',
-      precoVarejo: 0,
-      precoAtacado: 0,
-      precoCusto: 0,
-      quantidadeEstoque: 0,
-      categoriaId: categorias.length > 0 ? categorias[0].id : ''
+      nome: '', precoVarejo: 0, precoAtacado: 0, precoCusto: 0,
+      quantidadeEstoque: 0, categoriaId: categorias.length > 0 ? categorias[0].id : ''
     });
     setModalIsOpen(true);
   };
 
-  // 2. Abre o modal para EDITAR um produto existente
   const abrirModalEdicao = (produto) => {
-    setProdutoEmEdicao(produto); // Guarda o produto que estamos editando
-    // Preenche o formulário com os dados do produto
+    setProdutoEmEdicao(produto);
     setFormData({
       nome: produto.nome,
       precoVarejo: produto.precoVarejo,
       precoAtacado: produto.precoAtacado,
       precoCusto: produto.precoCusto,
       quantidadeEstoque: produto.quantidadeEstoque,
-      categoriaId: produto.categoria.id // Pega o ID da categoria do produto
+      categoriaId: produto.categoria.id
     });
     setModalIsOpen(true);
   };
 
   const fecharModal = () => {
     setModalIsOpen(false);
-    setProdutoEmEdicao(null); // Limpa o estado de edição ao fechar
+    setProdutoEmEdicao(null);
   };
 
   // --- Função para lidar com mudanças no formulário ---
@@ -98,55 +95,53 @@ function ProdutoPage() {
     }));
   };
 
-  // --- Função para ENVIAR (Criar OU Atualizar) ---
+  // --- Função para ENVIAR o novo produto (Criar ou Atualizar) ---
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-
     const payload = {
       ...formData,
-      categoria: {
-        id: parseInt(formData.categoriaId)
-      }
+      categoria: { id: parseInt(formData.categoriaId) }
     };
     delete payload.categoriaId;
 
     try {
       if (produtoEmEdicao) {
-        // --- Modo de ATUALIZAÇÃO (PUT) ---
         await api.put(`/produtos/${produtoEmEdicao.id}`, payload);
-        alert('Produto atualizado com sucesso!');
+        toast.success('Produto atualizado com sucesso!');
       } else {
-        // --- Modo de CRIAÇÃO (POST) ---
         await api.post('/produtos', payload);
-        alert('Produto criado com sucesso!');
+        toast.success('Produto criado com sucesso!');
       }
-
       fecharModal();
-      fetchData(); // Atualiza a lista na tela
-
+      fetchData(); // Atualiza a lista
     } catch (err) {
       const errorMsg = err.response ? err.response.data : err.message;
-      alert(`Erro: ${errorMsg}`);
+      toast.error(`Erro: ${errorMsg}`);
     }
   };
 
-  // --- Função DELETAR (como antes) ---
-  const handleDelete = async (produtoId) => {
-    if (!window.confirm('Tem certeza que deseja excluir este produto?')) {
-      return;
-    }
+  // --- Funções de DELETAR (com modal de confirmação) ---
+  const handleAbrirConfirmDelete = (produtoId) => {
+    setProdutoParaDeletar(produtoId);
+    setConfirmModalIsOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
-      await api.delete(`/produtos/${produtoId}`);
-      alert('Produto excluído com sucesso!');
+      await api.delete(`/produtos/${produtoParaDeletar}`);
+      toast.success('Produto excluído com sucesso!');
       setProdutos(prevProdutos =>
-        prevProdutos.filter(produto => produto.id !== produtoId)
+        prevProdutos.filter(produto => produto.id !== produtoParaDeletar)
       );
     } catch (err) {
-      alert('Erro ao excluir produto: ' + (err.response ? err.response.data : err.message));
+      toast.error('Erro ao excluir produto: ' + (err.response ? err.response.data : err.message));
+    } finally {
+      setConfirmModalIsOpen(false);
+      setProdutoParaDeletar(null);
     }
   };
 
-  // --- Renderização ---
+  // --- Renderização da Página ---
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
 
@@ -155,7 +150,7 @@ function ProdutoPage() {
       <h2>Gerenciamento de Produtos</h2>
       <button onClick={abrirModalNovo}>Adicionar Novo Produto</button>
 
-      {/* --- O Modal (agora genérico) --- */}
+      {/* --- O Modal de Formulário --- */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={fecharModal}
@@ -170,6 +165,7 @@ function ProdutoPage() {
       >
         <h2>{produtoEmEdicao ? 'Editar Produto' : 'Novo Produto'}</h2>
         <form onSubmit={handleSubmitForm}>
+          {/* ... (inputs do formulário) ... */}
           <div>
             <label>Nome:</label>
             <input type="text" name="nome" value={formData.nome} onChange={handleFormChange} required />
@@ -204,6 +200,15 @@ function ProdutoPage() {
         </form>
       </Modal>
 
+      {/* --- O Modal de Confirmação --- */}
+      <ConfirmationModal
+        isOpen={confirmModalIsOpen}
+        onClose={() => setConfirmModalIsOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita."
+      />
+
       {/* --- Tabela de Produtos --- */}
       <table>
         <thead>
@@ -227,7 +232,7 @@ function ProdutoPage() {
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(produto.id)}
+                  onClick={() => handleAbrirConfirmDelete(produto.id)}
                   style={{ backgroundColor: '#dc3545', marginLeft: '5px' }}
                 >
                   Excluir

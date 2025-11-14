@@ -1,93 +1,125 @@
 // Local: src/pages/VendaPage.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 
 function VendaPage() {
-  // Estados para o formulário principal
+  // Estados do formulário principal
   const [clienteId, setClienteId] = useState('');
   const [tipoVenda, setTipoVenda] = useState('VAREJO');
   const [formaPagamento, setFormaPagamento] = useState('Dinheiro');
 
-  // --- Novos Estados para a busca e carrinho ---
-  const [termoBusca, setTermoBusca] = useState('');     // O que o usuário digita para buscar
-  const [resultadosBusca, setResultadosBusca] = useState([]); // A lista de produtos encontrados
-  const [itensCarrinho, setItensCarrinho] = useState([]);      // O "carrinho" da venda atual
-  const [quantidadeItem, setQuantidadeItem] = useState(1);     // Quantidade padrão para adicionar
+  // Estados da busca
+  const [termoBusca, setTermoBusca] = useState('');
+  const [resultadosBusca, setResultadosBusca] = useState([]);
 
+  // Estado do Carrinho
+  const [itensCarrinho, setItensCarrinho] = useState([]);
+
+  // Estados de Feedback
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // --- Nova Função: Buscar Produtos ---
-  const handleBuscarProduto = async () => {
+  // --- Efeito "Live Search" (como antes) ---
+  useEffect(() => {
     if (termoBusca.length < 2) {
       setResultadosBusca([]);
       return;
     }
-    try {
-      const response = await api.get(`/produtos/buscar?nome=${termoBusca}`);
-      setResultadosBusca(response.data);
-    } catch (err) {
-      console.error("Erro ao buscar produtos:", err);
-      setError("Erro ao buscar produtos.");
-    }
-  };
-
-  // --- Nova Função: Adicionar ao Carrinho ---
-  const adicionarAoCarrinho = (produto) => {
-    const item = {
-      produtoId: produto.id,
-      nome: produto.nome,
-      quantidade: parseInt(quantidadeItem),
-      precoUnitario: tipoVenda === 'VAREJO' ? produto.precoVarejo : produto.precoAtacado,
+    const timerId = setTimeout(() => {
+      const buscar = async () => {
+        try {
+          const response = await api.get(`/produtos/buscar?nome=${termoBusca}`);
+          setResultadosBusca(response.data);
+        } catch (err) {
+          console.error("Erro ao buscar produtos:", err);
+        }
+      };
+      buscar();
+    }, 300);
+    return () => {
+      clearTimeout(timerId);
     };
+  }, [termoBusca]);
 
-    // Adiciona o novo item à lista existente no carrinho
-    setItensCarrinho(prevItens => [...prevItens, item]);
+  // --- LÓGICA DO CARRINHO (Atualizada) ---
+
+  const adicionarAoCarrinho = (produto) => {
+    // Verifica se o item já está no carrinho
+    const itemExistente = itensCarrinho.find(item => item.produtoId === produto.id);
+
+    if (itemExistente) {
+      // Se existe, apenas incrementa a quantidade
+      setItensCarrinho(prevItens =>
+        prevItens.map(item =>
+          item.produtoId === produto.id
+            ? { ...item, quantidade: item.quantidade + 1 }
+            : item
+        )
+      );
+    } else {
+      // Se não existe, adiciona o novo item com quantidade 1
+      const precoUnitario = tipoVenda === 'VAREJO' ? produto.precoVarejo : produto.precoAtacado;
+      const novoItem = {
+        produtoId: produto.id,
+        nome: produto.nome,
+        quantidade: 1, // Começa com 1
+        precoUnitario: precoUnitario,
+        estoqueMax: produto.quantidadeEstoque
+      };
+      setItensCarrinho(prevItens => [...prevItens, novoItem]);
+    }
 
     // Limpa a busca
     setResultadosBusca([]);
     setTermoBusca('');
-    setQuantidadeItem(1);
   };
 
-  // --- Função Principal: Finalizar a Venda ---
+  const handleAtualizarQuantidadeCarrinho = (produtoId, novaQuantidade) => {
+    const qtd = parseInt(novaQuantidade);
+    setItensCarrinho(prevItens =>
+      prevItens.map(item =>
+        item.produtoId === produtoId ? { ...item, quantidade: qtd } : item
+      )
+    );
+  };
+
+  const handleRemoverDoCarrinho = (produtoId) => {
+    setItensCarrinho(prevItens =>
+      prevItens.filter(item => item.produtoId !== produtoId)
+    );
+  };
+
+  // --- LÓGICA DA VENDA (sem mudança) ---
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
-
     if (itensCarrinho.length === 0) {
       setError("Adicione pelo menos um item à venda.");
       return;
     }
-
-    // Mapeia o carrinho para o formato que o DTO do backend espera
     const itensParaEnviar = itensCarrinho.map(item => ({
       produtoId: item.produtoId,
       quantidade: item.quantidade
     }));
-
     const vendaRequest = {
       clienteId: clienteId ? parseInt(clienteId) : null,
       tipoVenda: tipoVenda,
       formaPagamento: formaPagamento,
-      itens: itensParaEnviar // Usa a lista dinâmica
+      itens: itensParaEnviar
     };
-
     try {
       const response = await api.post('/vendas', vendaRequest);
       setSuccess('Venda realizada com sucesso! ID: ' + response.data.id);
-      // Limpa tudo após a venda
       setItensCarrinho([]);
       setClienteId('');
-
     } catch (err) {
       setError(err.response ? err.response.data : err.message);
     }
   };
 
-  // Calcula o total do carrinho em tempo real
+  // --- CÁLCULO DO TOTAL (sem mudança) ---
   const totalCarrinho = itensCarrinho.reduce((total, item) => {
     return total + (item.precoUnitario * item.quantidade);
   }, 0);
@@ -99,62 +131,38 @@ function VendaPage() {
       {error && <div style={{ color: 'red' }}>Erro: {error}</div>}
       {success && <div style={{ color: 'green' }}>{success}</div>}
 
-      {/* --- SEÇÃO DE BUSCA DE PRODUTO --- */}
-      <div>
+      {/* --- MUDANÇA: SEÇÃO DE BUSCA DE PRODUTO --- */}
+      {/* 1. Adicionamos o 'search-container' para o CSS funcionar */}
+      <div className="search-container">
         <h3>Buscar Produto</h3>
         <input
           type="text"
           value={termoBusca}
           onChange={(e) => setTermoBusca(e.target.value)}
           placeholder="Digite o nome do produto..."
+          style={{ width: '100%' }} // Faz o input usar a largura do container
         />
-        <button type="button" onClick={handleBuscarProduto}>Buscar</button>
-      </div>
 
-      {/* --- SEÇÃO DE RESULTADOS DA BUSCA --- */}
-      {resultadosBusca.length > 0 && (
-        <div>
-          <h4>Resultados da Busca:</h4>
-          <ul>
+        {/* 2. Os resultados agora usam a classe CSS 'search-results' */}
+        {resultadosBusca.length > 0 && (
+          <ul className="search-results">
             {resultadosBusca.map(prod => (
-              <li key={prod.id}>
+              <li key={prod.id} onClick={() => adicionarAoCarrinho(prod)}>
                 {prod.nome} (Estoque: {prod.quantidadeEstoque})
-                <input
-                  type="number"
-                  defaultValue={1}
-                  min={1}
-                  max={prod.quantidadeEstoque}
-                  onChange={(e) => setQuantidadeItem(e.target.value)}
-                  style={{ width: '50px', marginLeft: '10px' }}
-                />
-                <button type="button" onClick={() => adicionarAoCarrinho(prod)}>Adicionar</button>
+                {/* 3. Removemos o input de quantidade e o botão daqui */}
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
 
       <hr />
 
       {/* --- FORMULÁRIO PRINCIPAL DA VENDA --- */}
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>ID do Cliente (opcional):</label>
-          <input type="number" value={clienteId} onChange={(e) => setClienteId(e.target.value)} />
-        </div>
-        <div>
-          <label>Tipo de Venda:</label>
-          <select value={tipoVenda} onChange={(e) => setTipoVenda(e.target.value)}>
-            <option value="VAREJO">Varejo</option>
-            <option value="ATACADO">Atacado</option>
-          </select>
-        </div>
-        <div>
-          <label>Forma de Pagamento:</label>
-          <input type="text" value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} />
-        </div>
+        {/* ... (campos Cliente, Tipo Venda, Forma Pagamento) ... */}
 
-        {/* --- SEÇÃO DO CARRINHO --- */}
+        {/* --- MUDANÇA: SEÇÃO DO CARRINHO --- */}
         <h3>Carrinho de Venda</h3>
         <table>
           <thead>
@@ -163,15 +171,36 @@ function VendaPage() {
               <th>Qtd</th>
               <th>Preço Unit.</th>
               <th>Subtotal</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             {itensCarrinho.map((item, index) => (
               <tr key={index}>
                 <td>{item.nome}</td>
-                <td>{item.quantidade}</td>
+                <td>
+                  {/* 4. Input de quantidade agora está DENTRO do carrinho */}
+                  <input
+                    type="number"
+                    value={item.quantidade}
+                    onChange={(e) => handleAtualizarQuantidadeCarrinho(item.produtoId, e.target.value)}
+                    min={1}
+                    max={item.estoqueMax} // Impede vender mais que o estoque
+                    style={{ width: '60px' }}
+                  />
+                </td>
                 <td>R$ {item.precoUnitario}</td>
                 <td>R$ {(item.precoUnitario * item.quantidade).toFixed(2)}</td>
+                <td>
+                  {/* 5. Botão para remover o item */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoverDoCarrinho(item.produtoId)}
+                    style={{ backgroundColor: '#dc3545', color: 'white' }}
+                  >
+                    Remover
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
