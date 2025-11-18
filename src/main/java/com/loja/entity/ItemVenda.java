@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "itens_venda")
@@ -14,8 +15,9 @@ public class ItemVenda {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne // Muitos itens para uma venda
+    @ManyToOne
     @JoinColumn(name = "id_venda", nullable = false)
+    @JsonBackReference
     private Venda venda;
 
     @ManyToOne // Muitos itens (vendas) para um produto
@@ -27,4 +29,5 @@ public class ItemVenda {
 
     @Column(name = "preco_unitario_venda", nullable = false)
     private BigDecimal precoUnitarioVenda; // Preço no momento da venda
+
 }

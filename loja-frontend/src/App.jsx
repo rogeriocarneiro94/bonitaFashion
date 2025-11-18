@@ -1,24 +1,23 @@
-// Local: src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
-// Nossas Páginas
+// Páginas
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProdutoPage from './pages/ProdutoPage';
 import ClientePage from './pages/ClientePage';
 import VendaPage from './pages/VendaPage';
 import FuncionarioPage from './pages/FuncionarioPage';
+import CategoriaPage from './pages/CategoriaPage';
+import HistoricoVendasPage from './pages/HistoricoVendasPage';
 
-// Nosso novo Layout
+// Layout
 import Layout from './components/Layout';
 
 import './App.css';
 
-// Componente que verifica se o usuário está logado
-// Se sim, mostra o Layout (que por sua vez mostra a página correta)
-// Se não, redireciona para o Login.
+// Rota Privada
 function PrivateRoute() {
   const token = localStorage.getItem('token');
   return token ? <Layout /> : <Navigate to="/login" />;
@@ -27,30 +26,31 @@ function PrivateRoute() {
 function App() {
   return (
     <BrowserRouter>
-        <Toaster
-                position="top-right" // Posição
-                toastOptions={{
-                  duration: 3000, // Duração de 3 segundos
-                }}
-              />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
+
       <Routes>
-        {/* Rota 1: Login (pública) */}
+        {/* Rota Pública */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Rota 2: Rotas Protegidas (privadas) */}
+        {/* Rotas Privadas */}
         <Route path="/" element={<PrivateRoute />}>
-          {/* Essas rotas são "filhas" do Layout (serão renderizadas no <Outlet>) */}
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/produtos" element={<ProdutoPage />} />
-          <Route path="/clientes" element={<ClientePage />} />
           <Route path="/vendas" element={<VendaPage />} />
+          <Route path="/historico-vendas" element={<HistoricoVendasPage />} />
+          <Route path="/produtos" element={<ProdutoPage />} />
+          <Route path="/categorias" element={<CategoriaPage />} />
+          <Route path="/clientes" element={<ClientePage />} />
           <Route path="/funcionarios" element={<FuncionarioPage />} />
 
-          {/* Redireciona "/" para "/dashboard" se estiver logado */}
           <Route index element={<Navigate to="/dashboard" />} />
         </Route>
 
-        {/* Rota Padrão: Se não achar nada, vai para o login */}
+        {/* Rota Padrão */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

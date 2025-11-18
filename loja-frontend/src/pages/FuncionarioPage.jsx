@@ -5,6 +5,7 @@ import api from '../api/api';
 import Modal from 'react-modal';
 import toast from 'react-hot-toast'; // 1. IMPORTE O TOAST
 import ConfirmationModal from '../components/ConfirmationModal'; // 2. IMPORTE O MODAL DE CONFIRMAÇÃO
+import { modalStyles } from '../components/modalStyles';
 
 Modal.setAppElement('#root');
 
@@ -133,11 +134,13 @@ function FuncionarioPage() {
 
       {/* --- O Modal de Formulário (sem mudança) --- */}
       <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={fecharModal}
-        contentLabel="Formulário de Funcionário"
-        style={{ /* ...seus estilos do modal... */ }}
-      >
+              isOpen={modalIsOpen}
+              onRequestClose={fecharModal}
+              contentLabel="Formulário..."
+              overlayClassName="ModalOverlay" // <-- ADICIONE ISTO
+              className="ModalContent"        // <-- ADICIONE ISTO
+              closeTimeoutMS={200} // Tempo da animação de saída
+            >
         <h2>{funcionarioEmEdicao ? 'Editar Funcionário' : 'Novo Funcionário'}</h2>
         <form onSubmit={handleSubmitForm}>
           <input type="text" name="nome" value={formData.nome} onChange={handleFormChange} placeholder="Nome" required />

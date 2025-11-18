@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime; // Mais completo que Timestamp, inclui fuso horário
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "vendas")
@@ -42,5 +43,6 @@ public class Venda {
 
     // Relacionamento: Uma Venda tem muitos ItensVenda
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // 2. ADICIONE ESTA ANOTAÇÃO (O PAI)
     private List<ItemVenda> itens = new ArrayList<>();
 }

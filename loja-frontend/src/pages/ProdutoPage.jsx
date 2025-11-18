@@ -5,6 +5,7 @@ import api from '../api/api';
 import Modal from 'react-modal';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal'; // Importa o modal de confirmação
+import { modalStyles } from '../components/modalStyles';
 
 Modal.setAppElement('#root');
 
@@ -150,19 +151,15 @@ function ProdutoPage() {
       <h2>Gerenciamento de Produtos</h2>
       <button onClick={abrirModalNovo}>Adicionar Novo Produto</button>
 
-      {/* --- O Modal de Formulário --- */}
       <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={fecharModal}
-        contentLabel="Formulário de Produto"
-        style={{
-          content: {
-            top: '50%', left: '50%', right: 'auto', bottom: 'auto',
-            marginRight: '-50%', transform: 'translate(-50%, -50%)',
-            width: '400px'
-          }
-        }}
-      >
+              isOpen={modalIsOpen}
+              onRequestClose={fecharModal}
+              contentLabel="Formulário..."
+              overlayClassName="ModalOverlay" // <-- ADICIONE ISTO
+              className="ModalContent"        // <-- ADICIONE ISTO
+              closeTimeoutMS={200} // Tempo da animação de saída
+            >
+
         <h2>{produtoEmEdicao ? 'Editar Produto' : 'Novo Produto'}</h2>
         <form onSubmit={handleSubmitForm}>
           {/* ... (inputs do formulário) ... */}

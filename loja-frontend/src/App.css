@@ -3,15 +3,13 @@
 /* ======================================= */
 
 :root {
-  --cor-fundo: #FFFAFA;
-  --cor-sidebar: #E6E6FA;
+  --cor-fundo: #f8f9fa;
+  --cor-sidebar: #e3f2fd;
   --cor-borda-sidebar: #cce5ff;
-  --cor-texto-principal: #000000; /* TEXTO PRETO/CINZA ESCURO */
+  --cor-texto-principal: #212529;
   --cor-titulo-sidebar: #004085;
   --cor-link-sidebar: #0056b3;
   --cor-link-hover: #cce5ff;
-
-  /* Larguras do Menu */
   --sidebar-width-open: 240px;
   --sidebar-width-collapsed: 80px;
 }
@@ -30,8 +28,9 @@ body {
 }
 
 /* --- O Menu Lateral (Sidebar) --- */
+/* (Todo o CSS da sidebar... está correto, sem mudanças) */
 .sidebar {
-  width: var(--sidebar-width-open); /* Largura padrão */
+  width: var(--sidebar-width-open);
   background-color: var(--cor-sidebar);
   border-right: 1px solid var(--cor-borda-sidebar);
   display: flex;
@@ -42,57 +41,40 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  box-sizing: border-box; /* Garante que o padding não aumente a largura */
-
-  /* A Mágica: transição suave da largura */
+  box-sizing: border-box;
   transition: width 0.3s ease-in-out;
+  z-index: 1000;
 }
-
 .sidebar h3 {
   color: var(--cor-titulo-sidebar);
   text-align: center;
   margin-top: 0;
-  white-space: nowrap; /* Impede quebra de linha */
-  overflow: hidden; /* Esconde o texto quando encolher */
+  white-space: nowrap;
+  overflow: hidden;
 }
-
-/* --- Links de Navegação --- */
 .sidebar nav {
   flex-grow: 1;
-  overflow: hidden; /* Esconde o que não couber */
+  overflow: hidden;
 }
-
 .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
 .sidebar nav li { margin: 10px 0; }
-
 .sidebar nav a {
   text-decoration: none;
   color: var(--cor-link-sidebar);
-  display: flex; /* Alinha ícone e texto */
+  display: flex;
   align-items: center;
-  gap: 15px; /* Espaço entre ícone e texto */
+  gap: 15px;
   padding: 10px 15px;
   border-radius: 5px;
   transition: background-color 0.2s;
-  white-space: nowrap; /* Impede quebra de linha do texto */
+  white-space: nowrap;
 }
-
 .sidebar nav a:hover {
   background-color: var(--cor-link-hover);
 }
-
-.sidebar .link-icon {
-  font-size: 1.4rem; /* Tamanho do ícone (emoji) */
-}
-
-.sidebar .link-text {
-  transition: opacity 0.2s ease-in-out; /* Transição suave do texto */
-}
-
-/* --- Botão de Sair (Footer) --- */
-.sidebar .sidebar-footer {
-  overflow: hidden; /* Esconde o texto do botão ao recolher */
-}
+.sidebar .link-icon { font-size: 1.4rem; }
+.sidebar .link-text { transition: opacity 0.2s ease-in-out; }
+.sidebar .sidebar-footer { overflow: hidden; }
 .sidebar .sidebar-footer button {
   width: 100%;
   padding: 10px;
@@ -106,8 +88,6 @@ body {
   justify-content: center;
   gap: 10px;
 }
-
-/* --- O Botão de Recolher/Expandir --- */
 .sidebar-toggle {
   background-color: var(--cor-titulo-sidebar);
   color: white;
@@ -121,62 +101,155 @@ body {
   right: -15px;
   z-index: 1001;
   border: 2px solid white;
-
-  /* --- ADIÇÕES PARA CENTRALIZAR O ÍCONE (SVG) --- */
-  font-size: 20px; /* Aumenta o tamanho do ícone */
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-/* --- O Conteúdo Principal --- */
 .content {
   flex-grow: 1;
   padding: 30px;
   overflow: auto;
-  /* Margem inicial com base na largura ABERTA do menu */
   margin-left: var(--sidebar-width-open);
-  /* Transição suave da margem */
   transition: margin-left 0.3s ease-in-out;
   color: var(--cor-texto-principal);
 }
 
+/* --- ESTADO RECOLHIDO --- */
 .sidebar.collapsed {
-  width: var(--sidebar-width-collapsed); /* Largura minimizada */
-  padding: 20px 10px; /* Padding lateral menor */
+  width: var(--sidebar-width-collapsed);
+  padding: 20px 10px;
 }
-
-.sidebar.collapsed h3 {
-  display: none; /* Esconde o título */
-}
-
-.sidebar.collapsed .link-text {
-  opacity: 0; /* Esconde o texto do link */
-  display: none; /* Remove da renderização */
-}
-
-.sidebar.collapsed nav a {
-  justify-content: center; /* Centraliza o ícone */
-  padding: 10px 0;
-  gap: 0;
-}
-
-.sidebar.collapsed .sidebar-footer button span {
-  display: none; /* Esconde o texto "Sair (Logout)" */
-}
-
-.sidebar.collapsed .sidebar-footer button {
-  justify-content: center;
-}
-
-/* Quando o menu estiver recolhido, o conteúdo "ocupa" o espaço */
+.sidebar.collapsed h3 { display: none; }
+.sidebar.collapsed .link-text { opacity: 0; display: none; }
+.sidebar.collapsed nav a { justify-content: center; padding: 10px 0; gap: 0; }
+.sidebar.collapsed .sidebar-footer button span { display: none; }
+.sidebar.collapsed .sidebar-footer button { justify-content: center; }
 .sidebar.collapsed ~ .content {
   margin-left: var(--sidebar-width-collapsed);
 }
 
-/* ======================================= */
-/* ESTILOS DO MODAL DE CONFIRMAÇÃO         */
-/* ======================================= */
+/* ================================================== */
+/* --- ESTILOS DOS MODAIS (CORREÇÃO DO TAB) --- */
+/* ================================================== */
+
+/* O fundo escurecido (Overlay) */
+.ModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+  pointer-events: auto;
+}
+
+/* O "card" branco do Modal (Content) */
+.ModalContent {
+  background: #fff;
+  border-radius: 8px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: none;
+  color: black;
+  overflow-y: auto;
+  max-height: 90vh;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: transform 200ms ease-in-out, opacity 200ms ease-in-out;
+  outline: none;
+  pointer-events: auto;
+
+  /* ✅ CRÍTICO: Permite navegação por teclado */
+  isolation: isolate;
+}
+
+/* --- Animações --- */
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+.ReactModal__Content--after-open {
+  transform: scale(1);
+  opacity: 1;
+}
+.ReactModal__Content--before-close {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+/* --- Estilos internos do modal --- */
+.ModalContent form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ModalContent form div {
+  display: flex;
+  flex-direction: column;
+}
+
+.ModalContent form label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+/* ✅ CORREÇÃO 4: Garante que inputs podem receber foco */
+.ModalContent input,
+.ModalContent select,
+.ModalContent textarea,
+.ModalContent button {
+  color: black;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 8px;
+  width: 95%;
+  margin-bottom: 0;
+
+  /* Garante que elementos são focáveis */
+  pointer-events: auto;
+  user-select: auto;
+}
+
+/* ✅ CORREÇÃO 5: Estilo de foco visível (acessibilidade) */
+.ModalContent input:focus,
+.ModalContent select:focus,
+.ModalContent textarea:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+  border-color: #007bff;
+}
+
+.ModalContent button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-right: 10px;
+  cursor: pointer;
+  width: auto; /* Botões não precisam de 95% */
+}
+
+.ModalContent button:focus {
+  outline: 2px solid #0056b3;
+  outline-offset: 2px;
+}
+
+.ModalContent button[type="button"] {
+  background-color: #6c757d;
+}
 
 .confirmation-buttons {
   margin-top: 20px;
@@ -192,20 +265,20 @@ body {
   margin-left: 10px;
 }
 
-/* Botão de "Perigo" (Excluir) */
 .btn-danger {
   background-color: #dc3545;
   color: white;
 }
+
 .btn-danger:hover {
   background-color: #c82333;
 }
 
-/* Botão Secundário (Cancelar) */
 .btn-secondary {
   background-color: #6c757d;
   color: white;
 }
+
 .btn-secondary:hover {
   background-color: #5a6268;
 }

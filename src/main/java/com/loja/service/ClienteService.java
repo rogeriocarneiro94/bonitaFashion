@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ClienteService {
+public class  ClienteService {
 
     private final ClienteRepository clienteRepository;
 
@@ -40,5 +40,9 @@ public class ClienteService {
             throw new IllegalStateException("Cliente com ID " + id + " não encontrado.");
         }
         clienteRepository.deleteById(id);
+    }
+
+    public List<Cliente> buscarPorNome(String nome) {
+        return clienteRepository.findByNomeContainingIgnoreCase(nome);
     }
 }
