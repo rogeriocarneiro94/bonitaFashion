@@ -1,0 +1,100 @@
+.gridContainer {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow-x: auto; /* Barra de rolagem se a tela for muito pequena */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  min-height: 300px; /* Altura mínima para parecer um "bloco" de sistema */
+}
+
+.erpTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px; /* Fonte ligeiramente menor para maior densidade */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.erpTable thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  text-align: right;
+  padding: 10px 8px;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.erpTable tbody td {
+  padding: 4px 8px; /* Padding vertical reduzido para maior densidade */
+  border-bottom: 1px solid #f1f1f1;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.erpTable tbody tr:hover {
+  background-color: #f2f6fc; /* Destaque suave ao passar o mouse */
+}
+
+/* Estilos para os inputs dentro da tabela */
+.editableCell {
+  padding: 2px !important; /* Remove padding da célula para o input ocupar tudo */
+}
+
+.erpInput {
+  width: 100%;
+  padding: 6px 4px;
+  border: 1px solid transparent; /* Borda transparente até focar */
+  border-radius: 2px;
+  text-align: right;
+  font-size: 13px;
+  background-color: transparent;
+  transition: all 0.2s;
+  /* Remove as setinhas padrões do input number */
+  -moz-appearance: textfield;
+}
+.erpInput::-webkit-outer-spin-button,
+.erpInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.erpInput:focus, .erpInput:hover {
+  background-color: #fff;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+  outline: none;
+}
+
+/* Estados e Botões */
+.emptyState {
+  text-align: center !important;
+  padding: 40px !important;
+  color: #999;
+  font-style: italic;
+}
+
+.badgeEstoque {
+    display: inline-block;
+    background-color: #ffeeba;
+    color: #856404;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin-left: 8px;
+}
+
+.btnRemove {
+    background: transparent;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.btnRemove:hover {
+    color: #dc3545;
+}

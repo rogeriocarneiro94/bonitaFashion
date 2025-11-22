@@ -109,7 +109,6 @@ function CategoriaPage() {
 
   return (
     <div>
-      <h2>Gerenciamento de Categorias</h2>
       <button onClick={abrirModalNovo}>Adicionar Nova Categoria</button>
 
       {/* --- Modal de Formulário --- */}

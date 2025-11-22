@@ -7,7 +7,7 @@ import com.loja.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importante!
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -18,18 +18,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VendaService {
 
-    // O serviço de venda precisa de (quase) todos os outros repositórios
     private final VendaRepository vendaRepository;
-    private final ItemVendaRepository itemVendaRepository;
+    private final ItemVendaRepository itemVendaRepository; // Usado implicitamente pelo Cascade, mas bom ter aqui
     private final ProdutoRepository produtoRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final ClienteRepository clienteRepository;
 
-    @Transactional // A MÁGICA ACONTECE AQUI!
+    @Transactional
     public Venda realizarVenda(VendaRequest request) {
 
         // 1. IDENTIFICAR O FUNCIONÁRIO (VENDEDOR)
-        // Pega o login do usuário (ex: "vendedor") que está autenticado via token JWT
         String login = SecurityContextHolder.getContext().getAuthentication().getName();
         Funcionario funcionario = funcionarioRepository.findByLogin(login)
                 .orElseThrow(() -> new IllegalStateException("Funcionário não encontrado"));
@@ -38,7 +36,7 @@ public class VendaService {
         Cliente cliente = null;
         if (request.getClienteId() != null) {
             cliente = clienteRepository.findById(request.getClienteId())
-                    .orElseThrow(() -> new IllegalStateException("Cliente não encontrado"));
+                    .orElseThrow(() -> new IllegalStateException("Cliente com ID " + request.getClienteId() + " não encontrado"));
         }
 
         // 3. CRIAR A VENDA "MÃE"
@@ -54,6 +52,10 @@ public class VendaService {
         List<ItemVenda> itensParaSalvar = new ArrayList<>();
 
         // 4. PROCESSAR CADA ITEM DA VENDA
+        if (request.getItens() == null || request.getItens().isEmpty()) {
+            throw new IllegalStateException("A venda deve conter pelo menos um item.");
+        }
+
         for (ItemVendaRequest itemReq : request.getItens()) {
 
             // 4a. Buscar o produto no banco
@@ -68,37 +70,57 @@ public class VendaService {
             // 4c. DAR BAIXA NO ESTOQUE
             int novoEstoque = produto.getQuantidadeEstoque() - itemReq.getQuantidade();
             produto.setQuantidadeEstoque(novoEstoque);
-            produtoRepository.save(produto); // Salva o produto com o novo estoque
+            produtoRepository.save(produto);
 
-            // 4d. Definir o preço (Varejo ou Atacado)
+            // 4d. Definir o preço unitário (Lida com BigDecimal)
             BigDecimal precoUnitario;
             if ("ATACADO".equalsIgnoreCase(request.getTipoVenda())) {
+                // Se seu Produto retorna BigDecimal, mantém. Se retornar Double, converte: BigDecimal.valueOf(...)
                 precoUnitario = produto.getPrecoAtacado();
             } else {
                 precoUnitario = produto.getPrecoVarejo();
             }
 
+            // --- LÓGICA DO DESCONTO ---
+            // 1. Pega o desconto do DTO (Double) e garante que não é null
+            Double descontoDouble = itemReq.getDesconto() != null ? itemReq.getDesconto() : 0.0;
+            BigDecimal valorDesconto = BigDecimal.valueOf(descontoDouble);
+
+            // 2. Calcula Valor Bruto do Item (Preço * Qtd)
+            BigDecimal quantidadeBD = new BigDecimal(itemReq.getQuantidade());
+            BigDecimal valorItemBruto = precoUnitario.multiply(quantidadeBD);
+
+            // 3. Validação: Desconto não pode ser maior que o item
+            if (valorDesconto.compareTo(valorItemBruto) > 0) {
+                throw new IllegalStateException("O desconto (" + valorDesconto + ") no produto " + produto.getNome() +
+                        " não pode ser maior que o valor do item (" + valorItemBruto + ")");
+            }
+
             // 4e. Criar o ItemVenda
             ItemVenda itemVenda = new ItemVenda();
-            itemVenda.setVenda(venda); // Associa com a venda "mãe"
+            itemVenda.setVenda(venda);
             itemVenda.setProduto(produto);
             itemVenda.setQuantidade(itemReq.getQuantidade());
-            itemVenda.setPrecoUnitarioVenda(precoUnitario);
+
+            // CONVERSÃO IMPORTANTE: Entity usa Double, mas cálculo foi BigDecimal
+            itemVenda.setPrecoUnitarioVenda(precoUnitario.doubleValue());
+            itemVenda.setDesconto(descontoDouble); // Salva o desconto no banco
 
             itensParaSalvar.add(itemVenda);
 
-            // 4f. Somar ao valor total da venda
-            valorTotalVenda = valorTotalVenda.add(precoUnitario.multiply(new BigDecimal(itemReq.getQuantidade())));
+            // 4f. Somar ao valor total da venda (Líquido = Bruto - Desconto)
+            BigDecimal valorItemLiquido = valorItemBruto.subtract(valorDesconto);
+            valorTotalVenda = valorTotalVenda.add(valorItemLiquido);
         }
 
         // 5. FINALIZAR A VENDA
         venda.setValorTotal(valorTotalVenda);
-        venda.setItens(itensParaSalvar); // Adiciona a lista de itens à venda
+        venda.setItens(itensParaSalvar);
 
-        return vendaRepository.save(venda); // Salva a Venda (e os ItensVenda em cascata)
+        return vendaRepository.save(venda);
     }
 
-    // (Opcional) Método para listar vendas
+    // Método auxiliar para listar vendas (caso precise)
     public List<Venda> listarVendas() {
         return vendaRepository.findAll();
     }

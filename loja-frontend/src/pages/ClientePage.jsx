@@ -1,15 +1,13 @@
 // Local: src/pages/ClientePage.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/api';
-import Modal from 'react-modal';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal';
 
-Modal.setAppElement('#root');
-
-// Estado inicial do formulário
-const formInicialVazio = {
+// Objeto inicial seguro
+const formInicial = {
+  id: '',
   nome: '',
   cpfCnpj: '',
   telefone: '',
@@ -21,62 +19,35 @@ const formInicialVazio = {
   bairro: '',
   cidade: '',
   uf: '',
-  tipoPessoa: 'PF' // PF ou PJ
+  tipoPessoa: 'PF'
 };
 
 function ClientePage() {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // --- Estados do Modal ---
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [clienteEmEdicao, setClienteEmEdicao] = useState(null);
-  const [formData, setFormData] = useState(formInicialVazio);
+  // Formulário e Busca
+  const [formData, setFormData] = useState(formInicial);
+  const [termoBusca, setTermoBusca] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
 
-  // --- Estados do Modal de Confirmação ---
+  // Modal de Exclusão
   const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
   const [clienteParaDeletar, setClienteParaDeletar] = useState(null);
 
-  // --- Ref para controle de foco ---
-  const primeiroInputRef = useRef(null);
+  // --- MÁSCARAS MANUAIS (Seguras) ---
+  const formatarGenerico = (v) => v ? v : '';
 
-  // ✅ Handler para prevenir que o Modal capture o Tab
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Não faz nada, deixa o navegador gerenciar o Tab naturalmente
-      if (e.key === 'Tab') {
-        // Permite comportamento padrão
-        return;
-      }
-    };
-
-    if (modalIsOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [modalIsOpen]);
-
-  // ======================
-  // FUNÇÕES DE MÁSCARA
-  // ======================
-
-  const mascararCPF = (valor) => {
-    return valor
-      .replace(/\D/g, '')
+  const mascaraCPF = (v) => {
+    return v.replace(/\D/g, '')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})/, '$1-$2')
       .replace(/(-\d{2})\d+?$/, '$1');
   };
 
-  const mascararCNPJ = (valor) => {
-    return valor
-      .replace(/\D/g, '')
+  const mascaraCNPJ = (v) => {
+    return v.replace(/\D/g, '')
       .replace(/(\d{2})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1/$2')
@@ -84,478 +55,349 @@ function ClientePage() {
       .replace(/(-\d{2})\d+?$/, '$1');
   };
 
-  const mascararTelefone = (valor) => {
-    const numbers = valor.replace(/\D/g, '');
-
-    // Celular (11) 98888-8888
-    if (numbers.length === 11) {
-      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    }
-    // Fixo (11) 3888-8888
-    if (numbers.length === 10) {
-      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    // Parcial
-    if (numbers.length > 6) {
-      return numbers.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
-    }
-    if (numbers.length > 2) {
-      return numbers.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-    }
-    return numbers;
+  const mascaraTelefone = (v) => {
+    let r = v.replace(/\D/g, "");
+    if (r.length > 10) r = r.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
+    else if (r.length > 5) r = r.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+    else if (r.length > 2) r = r.replace(/^(\d\d)(\d{0,5})/, "($1) $2");
+    return r;
   };
 
-  const mascararCEP = (valor) => {
-    return valor
-      .replace(/\D/g, '')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .replace(/(-\d{3})\d+?$/, '$1');
-  };
+  const mascaraCEP = (v) => v.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').substr(0, 9);
 
-  // ======================
-  // BUSCA DE CEP
-  // ======================
 
-  const buscarCEP = async (cep) => {
-    const cepLimpo = cep.replace(/\D/g, '');
-
-    if (cepLimpo.length !== 8) {
-      return;
-    }
-
-    setBuscandoCep(true);
-
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-      const data = await response.json();
-
-      if (data.erro) {
-        toast.error('CEP não encontrado!');
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        logradouro: data.logradouro || '',
-        bairro: data.bairro || '',
-        cidade: data.localidade || '',
-        uf: data.uf || '',
-        complemento: data.complemento || prev.complemento
-      }));
-
-      toast.success('Endereço preenchido automaticamente!');
-    } catch (error) {
-      toast.error('Erro ao buscar CEP');
-    } finally {
-      setBuscandoCep(false);
-    }
-  };
-
-  // ======================
-  // HANDLERS
-  // ======================
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-
-    let valorFormatado = value;
-
-    // Aplica máscaras conforme o campo
-    if (name === 'cpfCnpj') {
-      valorFormatado = formData.tipoPessoa === 'PF'
-        ? mascararCPF(value)
-        : mascararCNPJ(value);
-    } else if (name === 'telefone') {
-      valorFormatado = mascararTelefone(value);
-    } else if (name === 'cep') {
-      valorFormatado = mascararCEP(value);
-
-      // Se completou o CEP, busca automaticamente
-      const cepLimpo = value.replace(/\D/g, '');
-      if (cepLimpo.length === 8) {
-        buscarCEP(value);
-      }
-    }
-
-    setFormData(prev => ({ ...prev, [name]: valorFormatado }));
-  };
-
-  const handleTipoPessoaChange = (tipo) => {
-    setFormData(prev => ({
-      ...prev,
-      tipoPessoa: tipo,
-      cpfCnpj: '' // Limpa o campo ao trocar o tipo
-    }));
-  };
-
-  // ======================
-  // FUNÇÕES DE API
-  // ======================
-
+  // --- API: Buscar Lista ---
   const fetchData = async () => {
-    setLoading(true);
     try {
       const response = await api.get('/clientes');
-      setClientes(response.data);
+      setClientes(response.data || []); // Garante array
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      toast.error('Erro ao carregar lista.');
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const fecharModal = () => {
-    setModalIsOpen(false);
-    setClienteEmEdicao(null);
-    setFormData(formInicialVazio);
+  // --- BUSCA POR ID (Enter no campo ID) ---
+  const buscarPorId = async () => {
+    if (!formData.id) return;
+    try {
+      const res = await api.get(`/clientes/${formData.id}`);
+      preencherFormulario(res.data);
+      toast.success('Cliente encontrado!');
+    } catch (err) {
+      toast.error('Cliente não encontrado. Iniciando novo.');
+      limparFormulario();
+    }
   };
 
-  const abrirModalNovo = () => {
-    setClienteEmEdicao(null);
-    setFormData(formInicialVazio);
-    setModalIsOpen(true);
-    // Foca o primeiro campo após abrir
-    setTimeout(() => {
-      if (primeiroInputRef.current) {
-        primeiroInputRef.current.focus();
-      }
-    }, 100);
+  const handleIdKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      buscarPorId();
+    }
   };
 
-  const abrirModalEdicao = (cliente) => {
-    setClienteEmEdicao(cliente);
-
-    // Detecta tipo de pessoa baseado no tamanho do CPF/CNPJ
-    const cpfCnpjLimpo = (cliente.cpfCnpj || '').replace(/\D/g, '');
-    const tipoPessoa = cpfCnpjLimpo.length === 14 ? 'PJ' : 'PF';
+  // --- PREENCHIMENTO ---
+  const preencherFormulario = (cliente) => {
+    const docLimpo = (cliente.cpfCnpj || '').replace(/\D/g, '');
+    const tipo = docLimpo.length > 11 ? 'PJ' : 'PF';
 
     setFormData({
+      id: cliente.id,
       nome: cliente.nome || '',
-      cpfCnpj: tipoPessoa === 'PF'
-        ? mascararCPF(cliente.cpfCnpj || '')
-        : mascararCNPJ(cliente.cpfCnpj || ''),
-      telefone: mascararTelefone(cliente.telefone || ''),
+      cpfCnpj: tipo === 'PF' ? mascaraCPF(cliente.cpfCnpj || '') : mascaraCNPJ(cliente.cpfCnpj || ''),
+      telefone: mascaraTelefone(cliente.telefone || ''),
       email: cliente.email || '',
-      cep: mascararCEP(cliente.cep || ''),
+      cep: mascaraCEP(cliente.cep || ''),
       logradouro: cliente.logradouro || '',
       numero: cliente.numero || '',
       complemento: cliente.complemento || '',
       bairro: cliente.bairro || '',
       cidade: cliente.cidade || '',
       uf: cliente.uf || '',
-      tipoPessoa: tipoPessoa
+      tipoPessoa: tipo
     });
-    setModalIsOpen(true);
-    // Foca o primeiro campo após abrir
-    setTimeout(() => {
-      if (primeiroInputRef.current) {
-        primeiroInputRef.current.focus();
-      }
-    }, 100);
   };
 
-  const handleSubmitForm = async (e) => {
+  const limparFormulario = () => {
+    setFormData(formInicial);
+  };
+
+  // --- HANDLERS DE INPUT ---
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let val = value;
+
+    // Aplica máscaras
+    if (name === 'cpfCnpj') val = formData.tipoPessoa === 'PF' ? mascaraCPF(value) : mascaraCNPJ(value);
+    if (name === 'telefone') val = mascaraTelefone(value);
+    if (name === 'cep') {
+      val = mascaraCEP(value);
+      if (val.replace(/\D/g, '').length === 8) buscarCEP(val);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: val }));
+  };
+
+  const handleTipoChange = (tipo) => {
+    setFormData(prev => ({ ...prev, tipoPessoa: tipo, cpfCnpj: '' }));
+  };
+
+  const buscarCEP = async (cep) => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    setBuscandoCep(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setFormData(prev => ({
+          ...prev,
+          logradouro: data.logradouro, bairro: data.bairro,
+          cidade: data.localidade, uf: data.uf, complemento: data.complemento || prev.complemento
+        }));
+        toast.success('Endereço preenchido!');
+      }
+    } catch (e) { toast.error('Erro no CEP'); }
+    finally { setBuscandoCep(false); }
+  };
+
+  // --- SALVAR ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Remove máscaras antes de enviar
+    // Payload limpo
     const payload = {
       ...formData,
       cpfCnpj: formData.cpfCnpj.replace(/\D/g, ''),
       telefone: formData.telefone.replace(/\D/g, ''),
       cep: formData.cep.replace(/\D/g, '')
     };
-
-    // Remove campo auxiliar
-    delete payload.tipoPessoa;
+    delete payload.tipoPessoa; // Não envia para o backend
 
     try {
-      if (clienteEmEdicao) {
-        await api.put(`/clientes/${clienteEmEdicao.id}`, payload);
-        toast.success('Cliente atualizado com sucesso!');
+      if (formData.id && clientes.some(c => c.id === formData.id)) {
+        // Se tem ID e ele existe na lista, é atualização
+        await api.put(`/clientes/${formData.id}`, payload);
+        toast.success('Atualizado com sucesso!');
       } else {
-        await api.post('/clientes', payload);
-        toast.success('Cliente criado com sucesso!');
+        // Se não, é criação (remove ID para o banco gerar)
+        delete payload.id;
+        const res = await api.post('/clientes', payload);
+        toast.success(`Criado! ID: ${res.data.id}`);
+        // Atualiza o ID no form
+        setFormData(prev => ({ ...prev, id: res.data.id }));
       }
-      fecharModal();
-      fetchData();
+      fetchData(); // Atualiza a lista lateral
     } catch (err) {
-      const errorMsg = err.response ? err.response.data : err.message;
-      toast.error(`Erro: ${errorMsg}`);
+      const msg = err.response ? err.response.data : err.message;
+      toast.error(`Erro: ${msg}`);
     }
   };
 
-  const handleAbrirConfirmDelete = (clienteId) => {
-    setClienteParaDeletar(clienteId);
+  // --- EXCLUIR ---
+  const abrirConfirmacaoExclusao = (id, e) => {
+    e.stopPropagation(); // Não carrega o form ao clicar em excluir
+    setClienteParaDeletar(id);
     setConfirmModalIsOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const confirmarExclusao = async () => {
     try {
       await api.delete(`/clientes/${clienteParaDeletar}`);
-      toast.success('Cliente excluído com sucesso!');
-      setClientes(prevClientes =>
-        prevClientes.filter(cliente => cliente.id !== clienteParaDeletar)
-      );
+      toast.success('Excluído!');
+      setClientes(prev => prev.filter(c => c.id !== clienteParaDeletar));
+      if (formData.id === clienteParaDeletar) limparFormulario();
     } catch (err) {
-      const errorMsg = err.response
-        ? (err.response.status === 403
-            ? "Você não tem permissão para excluir."
-            : err.response.data)
-        : err.message;
-      toast.error('Erro ao excluir cliente: ' + errorMsg);
+      toast.error('Erro ao excluir (Verifique permissões).');
     } finally {
       setConfirmModalIsOpen(false);
-      setClienteParaDeletar(null);
     }
   };
 
-  // ======================
-  // RENDERIZAÇÃO
-  // ======================
+  // Filtro da lista lateral
+  const listaFiltrada = clientes.filter(c =>
+    c.nome.toLowerCase().includes(termoBusca.toLowerCase()) ||
+    (c.cpfCnpj && c.cpfCnpj.includes(termoBusca)) ||
+    c.id.toString().includes(termoBusca)
+  );
 
   if (loading) return <div>Carregando...</div>;
-  if (error) return <div>Erro: {error}</div>;
 
   return (
     <div>
-      <h2>Gerenciamento de Clientes</h2>
-      <button onClick={abrirModalNovo}>Adicionar Novo Cliente</button>
+      <h2>Gestão de Clientes</h2>
 
-      {/* MODAL DE FORMULÁRIO */}
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={fecharModal}
-        contentLabel="Formulário de Cliente"
-        overlayClassName="ModalOverlay"
-        className="ModalContent"
-        closeTimeoutMS={200}
-        shouldFocusAfterRender={true}
-        shouldReturnFocusAfterClose={true}
-        shouldCloseOnOverlayClick={true}
-        shouldCloseOnEsc={true}
-        parentSelector={() => document.body}
-      >
-        <h2>{clienteEmEdicao ? 'Editar Cliente' : 'Novo Cliente'}</h2>
+      <div className="split-view">
 
-        <form onSubmit={handleSubmitForm}>
-          <label>Nome: *</label>
-          <input
-            ref={primeiroInputRef}
-            tabIndex={1}
-            type="text"
-            name="nome"
-            value={formData.nome}
-            onChange={handleFormChange}
-            required
-            maxLength={70}
-            style={{ pointerEvents: 'auto', userSelect: 'auto' }}
-          />
+        {/* --- ESQUERDA: FORMULÁRIO --- */}
+        <div className="form-section">
+          <div className="form-card">
+            {/* Busca por ID (Cabeçalho do Form) */}
+            <form onSubmit={handleSubmit}>
+              <h4 style={{ marginTop: 0, color: '#000000ff'}}>Dados Pessoais</h4>
 
-          <label>Email:</label>
-          <input
-            tabIndex={2}
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleFormChange}
-            style={{ pointerEvents: 'auto', userSelect: 'auto' }}
-          />
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div className="id-search-container" style={{ flex: 1 }}>
+                  <label>ID:</label>
+                  <input
+                    id="id"
+                    type="number"
+                    className="id-input"
+                    value={formData.id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, id: parseInt(e.target.value) || '' }))}
+                    onKeyDown={handleIdKeyDown}
+                    placeholder="Novo"
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 8 }}>
+                  <label className="form-label">Nome *</label>
+                  <input id="nome" type="text" name="nome" className="form-input" value={formData.nome} onChange={handleChange} required maxLength={70} />
+                </div>
+              </div>
 
-          <label>Telefone:</label>
-          <input
-            tabIndex={3}
-            type="text"
-            name="telefone"
-            value={formData.telefone}
-            onChange={handleFormChange}
-            placeholder="(11) 98888-8888"
-            maxLength={15}
-            style={{ pointerEvents: 'auto', userSelect: 'auto' }}
-          />
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div className="form-group" style={{ flex: 0.5 }}>
+                  <label className="form-label">Tipo:</label>
+                  <select
+                    name="tipoPessoa"
+                    value={formData.tipoPessoa}
+                    onChange={(e) => handleTipoChange(e.target.value)}
+                    className="form-input"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <option value="PF">Pessoa Física</option>
+                    <option value="PJ">Pessoa Jurídica</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">{formData.tipoPessoa === 'PF' ? 'CPF' : 'CNPJ'}</label>
+                  <input id="cpfCnpj" type="text" name="cpfCnpj" className="form-input" value={formData.cpfCnpj} onChange={handleChange} maxLength={18} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">Telefone</label>
+                  <input id="telefone" type="text" name="telefone" className="form-input" value={formData.telefone} onChange={handleChange} maxLength={15} />
+                </div>
+                <div className="form-group" style={{ flex: 7 }}>
+                  <label className="form-label">Email</label>
+                  <input id="email" type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} />
+                </div>
+              </div>
 
-          {/* SELETOR DE TIPO DE PESSOA */}
-          <label>Tipo de Pessoa:</label>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-            <button
-              tabIndex={0}
-              type="button"
-              onClick={() => handleTipoPessoaChange('PF')}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: formData.tipoPessoa === 'PF' ? '#007bff' : '#e0e0e0',
-                color: formData.tipoPessoa === 'PF' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Pessoa Física (CPF)
-            </button>
-            <button
-              tabIndex={0}
-              type="button"
-              onClick={() => handleTipoPessoaChange('PJ')}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: formData.tipoPessoa === 'PJ' ? '#007bff' : '#e0e0e0',
-                color: formData.tipoPessoa === 'PJ' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Pessoa Jurídica (CNPJ)
-            </button>
+              <hr style={{ margin: '15px 0', borderTop: '1px solid #eee' }} />
+              <h4 style={{ marginTop: 0, color: '#000000ff' }}>Endereço</h4>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">CEP {buscandoCep && '...'}</label>
+                  <input id="cep" type="text" name="cep" className="form-input" value={formData.cep} onChange={handleChange} maxLength={9} />
+                </div>
+                <div className="form-group" style={{ flex: 8 }}>
+                  <label className="form-label">Rua</label>
+                  <input id="logradouro" type="text" name="logradouro" className="form-input" value={formData.logradouro} onChange={handleChange} />
+                </div>
+                <div className="form-group" style={{ flex: 0.5 }}>
+                  <label className="form-label">Nº</label>
+                  <input id="numeroTel" type="text" name="numeroTel" className="form-input" value={formData.numero} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Bairro</label>
+                  <input type="text" name="bairro" className="form-input" value={formData.bairro} onChange={handleChange} />
+                </div>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">Cidade</label>
+                  <input type="text" name="cidade" className="form-input" value={formData.cidade} onChange={handleChange} />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">UF</label>
+                  <input type="text" name="uf" className="form-input" value={formData.uf} onChange={handleChange} maxLength={2} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Complemento</label>
+                <input type="text" name="complemento" className="form-input" value={formData.complemento} onChange={handleChange} />
+              </div>
+
+              <button type="submit" className="btn btn-success" style={{ width: '100%', padding: '12px', marginTop: '10px' }}>
+                Salvar Cliente
+              </button>
+            </form>
           </div>
+        </div>
 
-          <label>{formData.tipoPessoa === 'PF' ? 'CPF:' : 'CNPJ:'}</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="cpfCnpj"
-            value={formData.cpfCnpj}
-            onChange={handleFormChange}
-            placeholder={formData.tipoPessoa === 'PF' ? '000.000.000-00' : '00.000.000/0000-00'}
-            maxLength={formData.tipoPessoa === 'PF' ? 14 : 18}
-          />
+        {/* --- DIREITA: LISTA --- */}
+        <div className="list-section">
+          <div className="card">
+            <h3>Clientes Cadastrados</h3>
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="🔍 Buscar por Nome ou CPF..."
+                value={termoBusca}
+                onChange={(e) => setTermoBusca(e.target.value)}
+                className="form-input"
+                style={{ border: '2px solid #0078d4' }}
+              />
+            </div>
 
-          <hr />
-          <h4>Endereço</h4>
-
-          <label>CEP: {buscandoCep && <span style={{ color: '#007bff' }}>🔄 Buscando...</span>}</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="cep"
-            value={formData.cep}
-            onChange={handleFormChange}
-            placeholder="00000-000"
-            maxLength={9}
-          />
-          <small style={{ color: '#666' }}>Digite o CEP para preencher automaticamente</small>
-
-          <label>Logradouro (Rua/Av):</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="logradouro"
-            value={formData.logradouro}
-            onChange={handleFormChange}
-          />
-
-          <label>Número:</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="numero"
-            value={formData.numero}
-            onChange={handleFormChange}
-          />
-
-          <label>Bairro:</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="bairro"
-            value={formData.bairro}
-            onChange={handleFormChange}
-          />
-
-          <label>Cidade:</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="cidade"
-            value={formData.cidade}
-            onChange={handleFormChange}
-          />
-
-          <label>UF:</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="uf"
-            value={formData.uf}
-            onChange={handleFormChange}
-            maxLength={2}
-            style={{ textTransform: 'uppercase' }}
-          />
-
-          <label>Complemento:</label>
-          <input
-            tabIndex={0}
-            type="text"
-            name="complemento"
-            value={formData.complemento}
-            onChange={handleFormChange}
-          />
-
-          <br/>
-          <div className="confirmation-buttons">
-            <button
-              tabIndex={0}
-              type="button"
-              className="btn-secondary"
-              onClick={fecharModal}
-            >
-              Cancelar
-            </button>
-            <button
-              tabIndex={0}
-              type="submit"
-            >
-              Salvar
-            </button>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: '50px' }}>ID</th>
+                    <th>Nome / Documento</th>
+                    <th style={{ width: '60px' }}>Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listaFiltrada.map(c => (
+                    <tr
+                      key={c.id}
+                      onClick={() => preencherFormulario(c)}
+                      style={{ cursor: 'pointer', backgroundColor: formData.id === c.id ? '#e3f2fd' : 'white' }}
+                    >
+                      <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{c.id}</td>
+                      <td>
+                        <div style={{ fontWeight: '600' }}>{c.nome}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>{c.cpfCnpj}</div>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={(e) => abrirConfirmacaoExclusao(c.id, e)}
+                          title="Excluir"
+                        >
+                          X
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {listaFiltrada.length === 0 && (
+                    <tr><td colSpan="3" style={{ textAlign: 'center', padding: '20px' }}>Nada encontrado.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </form>
-      </Modal>
+        </div>
 
-      {/* Modal de Confirmação */}
+      </div>
+
       <ConfirmationModal
         isOpen={confirmModalIsOpen}
         onClose={() => setConfirmModalIsOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Confirmar Exclusão"
-        message="Tem certeza que deseja excluir este cliente?"
+        onConfirm={confirmarExclusao}
+        title="Excluir Cliente"
+        message="Tem certeza que deseja excluir?"
       />
-
-      {/* Tabela de Clientes */}
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>CPF/CNPJ</th>
-            <th>Telefone</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clientes.map(cliente => (
-            <tr key={cliente.id}>
-              <td>{cliente.id}</td>
-              <td>{cliente.nome}</td>
-              <td>{cliente.cpfCnpj}</td>
-              <td>{cliente.telefone}</td>
-              <td>
-                <button onClick={() => abrirModalEdicao(cliente)}>
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleAbrirConfirmDelete(cliente.id)}
-                  style={{ backgroundColor: '#dc3545', marginLeft: '5px' }}
-                >
-                  Excluir
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

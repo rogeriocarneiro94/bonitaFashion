@@ -129,7 +129,6 @@ function FuncionarioPage() {
 
   return (
     <div>
-      <h2>Gerenciamento de Funcionários</h2>
       <button onClick={abrirModalNovo}>Adicionar Novo Funcionário</button>
 
       {/* --- O Modal de Formulário (sem mudança) --- */}

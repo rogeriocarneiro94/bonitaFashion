@@ -53,8 +53,6 @@ function HistoricoVendasPage() {
 
   return (
     <div>
-      <h2>Histórico de Vendas</h2>
-
       {/* Mensagem amigável se não houver vendas */}
       {vendas.length === 0 && !loading && (
         <p>Nenhuma venda registrada ainda.</p>

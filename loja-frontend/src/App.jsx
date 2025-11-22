@@ -6,8 +6,9 @@ import { Toaster } from 'react-hot-toast';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ProdutoPage from './pages/ProdutoPage';
+import EstoquePage from './pages/EstoquePage'
 import ClientePage from './pages/ClientePage';
-import VendaPage from './pages/VendaPage';
+import VendaPage from './pages/Venda';
 import FuncionarioPage from './pages/FuncionarioPage';
 import CategoriaPage from './pages/CategoriaPage';
 import HistoricoVendasPage from './pages/HistoricoVendasPage';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/vendas" element={<VendaPage />} />
           <Route path="/historico-vendas" element={<HistoricoVendasPage />} />
           <Route path="/produtos" element={<ProdutoPage />} />
+          <Route path="/estoque" element={<EstoquePage />} />
           <Route path="/categorias" element={<CategoriaPage />} />
           <Route path="/clientes" element={<ClientePage />} />
           <Route path="/funcionarios" element={<FuncionarioPage />} />

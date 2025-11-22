@@ -1,0 +1,174 @@
+/* Layout Principal */
+.venda-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 70px); /* Ajuste conforme sua navbar */
+  background-color: #f0f2f5; /* Fundo ligeiramente mais cinza para contraste */
+  padding: 15px;
+  gap: 15px;
+}
+
+/* --- BARRA DE FERRAMENTAS SUPERIOR (Onde estava a bagunça) --- */
+/* Agora será um container único para Cliente, Tipo e Produto */
+.venda-toolbar {
+  display: flex;
+  gap: 15px; /* Espaço entre os blocos */
+  align-items: flex-end; /* Alinha tudo pela base (para os inputs ficarem na mesma altura) */
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Blocos individuais dentro da toolbar */
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Faz a busca de cliente e produto ocuparem mais espaço */
+.toolbar-group.flex-grow {
+  flex: 1;
+}
+
+.toolbar-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-left: 2px;
+}
+
+/* Estilo unificado para Inputs e Selects dessa barra */
+.venda-toolbar input,
+.venda-toolbar select {
+  padding: 10px 12px;
+  border: 1px solid #dce0e4;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: #fff;
+  transition: border-color 0.2s;
+  width: 100%; /* Garante que ocupem o espaço do grupo */
+}
+
+.venda-toolbar input:focus,
+.venda-toolbar select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+
+/* --- CORPO DA TABELA --- */
+.venda-body {
+  flex: 1; /* Ocupa o resto da tela */
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden; /* Importante para a rolagem da tabela */
+}
+
+/* --- RODAPÉ (Footer) --- */
+.venda-footer {
+  background: #2c3e50; /* Cor escura profissional */
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.footer-info {
+  display: flex;
+  gap: 30px;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: #bdc3c7;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-group .total-valor {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2ecc71; /* Verde sucesso */
+  line-height: 1;
+}
+
+.input-pagamento-footer {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+/* Botão Finalizar */
+.btn-finalizar {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 12px 40px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-finalizar:hover {
+  background-color: #219653;
+}
+.btn-finalizar:active {
+    transform: scale(0.98);
+}
+/* --- Estilos para Dropdown de Busca (Cliente e Produto) --- */
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* A lista flutuante */
+.dropdown-results {
+  position: absolute; /* O segredo: flutua sobre os outros elementos */
+  top: 100%; /* Cola logo abaixo do input */
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #dfe6e9;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra bonita */
+  z-index: 1000; /* Garante que fique por cima da tabela */
+  max-height: 300px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown-results li {
+  padding: 10px 15px;
+  border-bottom: 1px solid #f1f2f6;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-results li:hover {
+  background-color: #f0f8ff; /* Azul bem clarinho ao passar o mouse */
+}
+
+.dropdown-results li:last-child {
+  border-bottom: none;
+}
