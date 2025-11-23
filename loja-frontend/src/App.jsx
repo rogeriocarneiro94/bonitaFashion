@@ -5,13 +5,13 @@ import { Toaster } from 'react-hot-toast';
 // Páginas
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import ProdutoPage from './pages/ProdutoPage';
-import EstoquePage from './pages/EstoquePage'
+import ProdutoPage from './pages/Produtos/ProdutoPage';
+import EstoquePage from './pages/Produtos/EstoquePage'
 import ClientePage from './pages/ClientePage';
 import VendaPage from './pages/Venda';
 import FuncionarioPage from './pages/FuncionarioPage';
-import CategoriaPage from './pages/CategoriaPage';
-import HistoricoVendasPage from './pages/HistoricoVendasPage';
+import CategoriaPage from './pages/Produtos/CategoriaPage';
+import HistoricoVendas from './pages/HistoricoVendas';
 
 // Layout
 import Layout from './components/Layout';
@@ -41,13 +41,18 @@ function App() {
         {/* Rotas Privadas */}
         <Route path="/" element={<PrivateRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/vendas" element={<VendaPage />} />
-          <Route path="/historico-vendas" element={<HistoricoVendasPage />} />
-          <Route path="/produtos" element={<ProdutoPage />} />
-          <Route path="/estoque" element={<EstoquePage />} />
-          <Route path="/categorias" element={<CategoriaPage />} />
-          <Route path="/clientes" element={<ClientePage />} />
-          <Route path="/funcionarios" element={<FuncionarioPage />} />
+                    {/* Vendas */}
+                    <Route path="/vendas" element={<VendaPage />} />
+                    <Route path="/historico" element={<HistoricoVendas />} />
+                    {/* Produtos (Rotas Atualizadas) */}
+                    <Route path="/estoque" element={<EstoquePage />} /> {/* Geralmente "Produtos" no menu leva ao
+                        Estoque */}
+                    <Route path="/produtos" element={<ProdutoPage />} />
+                    <Route path="/categorias" element={<CategoriaPage />} />
+                    {/* Clientes */}
+                    <Route path="/clientes" element={<ClientePage />} />
+                    {/* Funcionários */}
+                    <Route path="/funcionarios" element={<FuncionarioPage />} />
 
           <Route index element={<Navigate to="/dashboard" />} />
         </Route>

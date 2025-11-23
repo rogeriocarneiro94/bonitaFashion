@@ -49,6 +49,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Permite o endpoint de login
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/dashboard/**").authenticated()
+                        .requestMatchers("/api/vendas/**").authenticated()
+                        .requestMatchers("/api/categorias/**").authenticated()
 
                         // (O FIX) Permite todas as requisições 'OPTIONS' (para o Preflight do CORS)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

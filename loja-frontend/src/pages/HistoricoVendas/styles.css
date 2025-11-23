@@ -1,0 +1,222 @@
+/* --- CONTAINER GERAL --- */
+.historico-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.historico-header {
+  margin-bottom: 20px;
+}
+
+.historico-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --- BARRA DE FILTROS --- */
+.filtros-bar {
+  display: flex;
+  gap: 10px;
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0 10px;
+  background-color: #fcfcfc;
+  height: 40px;
+}
+
+.filtro-group:focus-within {
+  border-color: #3498db;
+  background-color: white;
+}
+
+.flex-grow {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filtro-icon {
+    color: #95a5a6;
+    margin-right: 8px;
+}
+
+.filtro-input, .filtro-select {
+    border: none;
+    background: transparent;
+    outline: none;
+    height: 100%;
+    font-size: 0.9rem;
+    color: #333;
+    width: 100%;
+}
+
+.btn-limpar {
+    padding: 0 20px;
+    height: 40px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.btn-limpar:hover {
+    background-color: #c0392b;
+}
+
+/* --- TABELA DE DADOS --- */
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.vendas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.vendas-table thead {
+  background-color: #f1f2f6; /* Fundo cinza claro no cabeçalho */
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.vendas-table th,
+.vendas-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.vendas-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.col-id { width: 60px; text-align: center; color: #7f8c8d; font-weight: bold; }
+.col-total { font-weight: bold; color: #27ae60; }
+.col-acoes { text-align: center; width: 80px; }
+
+/* Badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-varejo { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.badge-atacado { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+
+/* Botão de Detalhes (Correção dos Ícones) */
+.btn-detalhes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  background-color: #fff;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #636e72; /* Cor do ícone */
+  transition: all 0.2s;
+}
+
+.btn-detalhes:hover {
+  background-color: #34495e;
+  color: white;
+  border-color: #34495e;
+}
+
+/* --- MODAL DE DETALHES (Onde estava o problema) --- */
+.modal-overlay {
+  position: fixed; /* OBRIGATÓRIO PARA SER POPUP */
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.6); /* Fundo escuro transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Bem alto para ficar na frente de tudo */
+  backdrop-filter: blur(2px); /* Efeito de desfoque no fundo */
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+  position: relative;
+  animation: modalFadeIn 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #b2bec3;
+  line-height: 1;
+}
+
+.modal-close:hover {
+    color: #e74c3c;
+}
+
+.lista-itens {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f9f9f9;
+  font-size: 0.95rem;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
