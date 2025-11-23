@@ -9,7 +9,7 @@ import ProdutoPage from './pages/Produtos/ProdutoPage';
 import EstoquePage from './pages/Produtos/EstoquePage'
 import ClientePage from './pages/ClientePage';
 import VendaPage from './pages/Venda';
-import FuncionarioPage from './pages/FuncionarioPage';
+import Funcionario from './pages/Funcionarios/funcionario';
 import CategoriaPage from './pages/Produtos/CategoriaPage';
 import HistoricoVendas from './pages/HistoricoVendas';
 
@@ -43,7 +43,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
                     {/* Vendas */}
                     <Route path="/vendas" element={<VendaPage />} />
-                    <Route path="/historico" element={<HistoricoVendas />} />
+                    <Route path="/historico-vendas" element={<HistoricoVendas />} />
                     {/* Produtos (Rotas Atualizadas) */}
                     <Route path="/estoque" element={<EstoquePage />} /> {/* Geralmente "Produtos" no menu leva ao
                         Estoque */}
@@ -52,7 +52,7 @@ function App() {
                     {/* Clientes */}
                     <Route path="/clientes" element={<ClientePage />} />
                     {/* Funcionários */}
-                    <Route path="/funcionarios" element={<FuncionarioPage />} />
+                    <Route path="/funcionarios" element={<Funcionario />} />
 
           <Route index element={<Navigate to="/dashboard" />} />
         </Route>

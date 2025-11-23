@@ -1,16 +1,19 @@
 package com.loja.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 
+@Data
 @Entity
 @Table(name = "funcionarios")
-@Getter
-@Setter
-public class Funcionario {
+public class Funcionario implements UserDetails { // <--- IMPLEMENTA A INTERFACE
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,22 +23,48 @@ public class Funcionario {
     private String nome;
 
     @Column(nullable = false, unique = true)
-    private String cpf;
+    private String login;
 
     @Column(nullable = false)
-    private String cargo;
-
-    @Column(nullable = false, unique = true)
-    private String login; // Este será o "username"
+    private String senha;
 
     @Column(nullable = false)
-    private String senha; // Armazenaremos o hash da senha aqui
+    private String perfil = "USER";
 
-    @Column(nullable = false)
+    @Column(name = "data_admissao", nullable = false)
     private LocalDate dataAdmissao;
-    // construtor padrão
-    public Funcionario() {
-        this.dataAdmissao = LocalDate.now(); // seta automaticamente
+
+    // --- MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY ---
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Se for ADMIN, ganha permissão de admin E usuário
+        if ("ADMIN".equalsIgnoreCase(this.perfil)) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        // Se não, só usuário
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
-    // Outros campos como data_admissao, ativo, etc.
+
+    @Override
+    public String getPassword() {
+        return senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+
+    @Override
+    public boolean isEnabled() { return true; }
 }

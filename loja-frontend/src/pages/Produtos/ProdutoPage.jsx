@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/api';
-import Modal from 'react-modal';
+import api from '../../api/api'; // <--- Import corrigido
 import toast from 'react-hot-toast';
-import ConfirmationModal from '../../components/ConfirmationModal';
-import { Package, DollarSign, Save, Layers, Archive } from 'lucide-react';
-import './ProdutoPage.css'; // Usaremos o mesmo CSS padronizado
+import { Package, DollarSign, Save, Archive } from 'lucide-react';
+import './ProdutoPage.css';
 
 const formInicial = {
   nome: '',
@@ -54,6 +52,7 @@ function ProdutoPage() {
     try {
       await api.post('/produtos', payload);
       toast.success('Produto cadastrado com sucesso!');
+      // Limpa, mas mantendo a categoria
       setFormData(prev => ({ ...formInicial, categoriaId: prev.categoriaId }));
     } catch (err) {
       toast.error('Erro ao cadastrar produto.');
@@ -84,29 +83,36 @@ function ProdutoPage() {
                </div>
                <div className="col-1">
                   <label>Categoria</label>
-                  <div className="select-wrapper">
-                    <select name="categoriaId" value={formData.categoriaId} onChange={handleChange}>
-                        {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                    </select>
-                  </div>
+                  <select name="categoriaId" value={formData.categoriaId} onChange={handleChange}>
+                      {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
                </div>
             </div>
 
             <div className="row">
                <div className="col-1">
-                  <div className="input-icon-wrapper">
-                      <label>Estoque</label>
-                    <input type="number" name="quantidadeEstoque" value={formData.quantidadeEstoque} onChange={handleChange} required placeholder="0" />
+                  <label>Estoque Inicial</label>
+                  <div style={{position: 'relative'}}>
+                    <Archive size={16} style={{position: 'absolute', left: 10, top: 12, color: '#999'}} />
+                    <input
+                        type="number"
+                        name="quantidadeEstoque"
+                        value={formData.quantidadeEstoque}
+                        onChange={handleChange}
+                        required
+                        placeholder="0"
+                        style={{paddingLeft: '35px'}}
+                    />
                   </div>
                </div>
-               <div className="col-2"></div> {/* Espaço vazio para alinhar */}
+               <div className="col-2"></div>
             </div>
           </div>
 
           {/* CARD 2: PREÇOS */}
           <div className="form-card mt-20">
              <div className="card-header">
-               <DollarSign size={20} className="card-icon"/> <h3>Preço</h3>
+               <DollarSign size={20} className="card-icon"/> <h3>Precificação</h3>
              </div>
 
              <div className="row">

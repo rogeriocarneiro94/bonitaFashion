@@ -1,0 +1,70 @@
+/* Local: src/pages/Funcionario.css */
+
+.page-container {
+  padding: 20px;
+  background-color: #f4f6f8;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; max-width: 900px; margin-left: auto; margin-right: auto;
+}
+.page-header h2 { margin: 0; color: #2c3e50; font-size: 1.5rem; }
+
+/* Botão Novo no Topo */
+.btn-novo-topo {
+    background: #3498db; color: white; border: none; padding: 10px 20px;
+    border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; gap: 8px; align-items: center;
+    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+}
+.btn-novo-topo:hover { background: #2980b9; }
+
+/* Card da Tabela */
+.table-card {
+    background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    overflow: hidden; max-width: 900px; margin: 0 auto;
+}
+
+.custom-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.custom-table th { background: #f8f9fa; color: #2c3e50; font-weight: 700; padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+.custom-table td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; color: #555; }
+.custom-table tbody tr:hover { background-color: #f1f7fd; }
+
+/* Colunas */
+.th-center { text-align: center !important; }
+.col-id { width: 60px; text-align: center !important; color: #999; font-weight: bold; }
+.col-actions { width: 100px; text-align: center !important; }
+
+/* Badges de Perfil */
+.badge-role { padding: 5px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-admin { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.badge-user { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+
+/* Ações */
+.actions-cell { display: flex; gap: 8px; justify-content: center; }
+.btn-icon { height: 34px; border-radius: 6px; border: 1px solid #dfe6e9; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #636e72; transition: all 0.2s; }
+.btn-icon:hover { background: #34495e; color: white; border-color: #34495e; }
+.btn-icon.delete:hover { background: #ffebee; color: #c0392b; border-color: #ffcdd2; }
+
+/* MODAL */
+.ModalOverlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 2000;
+    backdrop-filter: blur(2px);
+}
+.ModalContent {
+    background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; outline: none; box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+.modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.modal-header h3 { margin: 0; color: #2c3e50; }
+
+.form-modal { display: flex; flex-direction: column; gap: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: 600; color: #7f8c8d; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
+.form-group input:focus, .form-group select:focus { border-color: #3498db; outline: none; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.btn-cancel { background: #f1f2f6; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; color: #555; }
+.btn-confirm { background: #27ae60; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+.btn-confirm:hover { background: #219150; }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/api';
+import api from '../../api/api'; // <--- Import corrigido
 import Modal from 'react-modal';
 import toast from 'react-hot-toast';
-import ConfirmationModal from '../../components/ConfirmationModal';
+import ConfirmationModal from '../../components/ConfirmationModal'; // <--- Import corrigido
 import { Edit, Trash2, Plus, Layers } from 'lucide-react';
-import './ProdutoPage.css'; // Reutiliza o CSS
+import './ProdutoPage.css';
 
 Modal.setAppElement('#root');
 
@@ -75,7 +75,7 @@ function CategoriaPage() {
                 <td className="td-id">#{cat.id}</td>
                 <td><div style={{display:'flex', alignItems:'center', gap:'10px'}}><Layers size={16} color="#3498db"/> {cat.nome}</div></td>
                 <td className="th-center actions-cell">
-                   <button className="btn-icon edit" onClick={() => {setEditando(cat); setNome(cat.nome); setModalIsOpen(true)}}>
+                   <button className="btn-icon" onClick={() => {setEditando(cat); setNome(cat.nome); setModalIsOpen(true)}}>
                       <Edit size={16} />
                    </button>
                    <button className="btn-icon delete" onClick={() => {setIdDelete(cat.id); setConfirmModalIsOpen(true)}}>

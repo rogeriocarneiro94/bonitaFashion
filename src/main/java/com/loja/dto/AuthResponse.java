@@ -1,10 +1,5 @@
 package com.loja.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor // Cria um construtor com todos os argumentos
-public class AuthResponse {
-    private String token;
+// Definição simples e moderna (Java 17+)
+public record AuthResponse(String token, String nome, String perfil) {
 }

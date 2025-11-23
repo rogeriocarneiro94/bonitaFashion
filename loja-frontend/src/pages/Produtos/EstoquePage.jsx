@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/api';
+import api from '../../api/api'; // <--- Import corrigido
 import Modal from 'react-modal';
 import toast from 'react-hot-toast';
-import ConfirmationModal from '../../components/ConfirmationModal';
-import { Search, Edit, Trash2, X, Package, AlertCircle } from 'lucide-react';
-import './ProdutoPage.css'; // Mesmo CSS para manter padrão
+import ConfirmationModal from '../../components/ConfirmationModal'; // <--- Import corrigido
+import { Search, Edit, Trash2, X } from 'lucide-react';
+import './ProdutoPage.css';
 
 Modal.setAppElement('#root');
 
@@ -95,7 +95,7 @@ function EstoquePage() {
               value={termoBusca}
               onChange={e => setTermoBusca(e.target.value)}
            />
-           {termoBusca && <button onClick={() => setTermoBusca('')}><X size={16}/></button>}
+           {termoBusca && <button onClick={() => setTermoBusca('')} className="btn-icon" style={{border:'none'}}><X size={16}/></button>}
         </div>
       </div>
 
@@ -127,7 +127,7 @@ function EstoquePage() {
                 </td>
                 <td className="th-right">R$ {p.precoVarejo.toFixed(2)}</td>
                 <td className="th-center actions-cell">
-                   <button className="btn-icon edit" onClick={() => abrirEdicao(p)} title="Editar">
+                   <button className="btn-icon" onClick={() => abrirEdicao(p)} title="Editar">
                       <Edit size={16} />
                    </button>
                    <button className="btn-icon delete" onClick={() => {setIdParaDeletar(p.id); setConfirmModalIsOpen(true)}} title="Excluir">

@@ -9,19 +9,30 @@ function LoginPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (event) => {
-    event.preventDefault(); // Impede o recarregamento da página
-    setError(''); // Limpa mensagens de erro anteriores
+  const handleLogin = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await api.post('/auth/login', { login, senha });
 
-    try {
-      const response = await api.post('/auth/login', { login, senha });
-      localStorage.setItem('token', response.data.token);
-      navigate('/dashboard'); // Redireciona para o dashboard após o login
-    } catch (err) {
-      // Exibe uma mensagem de erro mais amigável
-      setError('Login ou senha inválidos. Tente novamente.');
-    }
-  };
+        // AQUI ESTÁ O SEGREDO:
+        // O backend agora manda { token, nome, perfil }
+        const { token, nome, perfil } = response.data;
+
+        // Salvamos no navegador
+        localStorage.setItem('token', token);
+        localStorage.setItem('usuario_nome', nome);   // <--- Salva o Nome
+        localStorage.setItem('usuario_perfil', perfil); // <--- Salva o Perfil
+
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        toast.success(`Bem-vindo, ${nome}!`);
+
+        // Força um recarregamento ou navega
+        window.location.href = "/dashboard";
+
+      } catch (error) {
+        toast.error('Login ou senha inválidos.');
+      }
+    };
 
   return (
     // 2. Adicione a classe para o container da página

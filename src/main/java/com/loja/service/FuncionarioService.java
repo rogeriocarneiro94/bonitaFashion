@@ -2,7 +2,7 @@ package com.loja.service;
 
 import com.loja.entity.Funcionario;
 import com.loja.repository.FuncionarioRepository;
-import lombok.RequiredArgsConstructor; // Use esta anotação do Lombok
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,47 +10,56 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor // Substitui o @Autowired no construtor
+@RequiredArgsConstructor
 public class FuncionarioService {
 
     private final FuncionarioRepository funcionarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Funcionario salvar(Funcionario funcionario) {
-        // REGRA DE NEGÓCIO CRÍTICA: Criptografar a senha antes de salvar!
-        String senhaCriptografada = passwordEncoder.encode(funcionario.getSenha());
-        funcionario.setSenha(senhaCriptografada);
+    public Funcionario criarFuncionario(Funcionario funcionario) {
+        if (funcionarioRepository.findByLogin(funcionario.getLogin()).isPresent()) {
+            throw new RuntimeException("Login já existe!");
+        }
+
+        // Criptografa a senha nova
+        funcionario.setSenha(passwordEncoder.encode(funcionario.getSenha()));
+
+        if (funcionario.getPerfil() == null || funcionario.getPerfil().isEmpty()) {
+            funcionario.setPerfil("USER");
+        }
 
         return funcionarioRepository.save(funcionario);
     }
 
-    // --- NOVOS MÉTODOS ADICIONADOS ---
+    // --- MÉTODO DE ATUALIZAÇÃO INTELIGENTE ---
+    public Funcionario atualizar(Long id, Funcionario dadosNovos) {
+        Funcionario funcionarioExistente = funcionarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
 
-    /**
-     * Lista todos os funcionários cadastrados.
-     * @return Lista de Funcionários.
-     */
+        // Atualiza os dados básicos
+        funcionarioExistente.setNome(dadosNovos.getNome());
+        funcionarioExistente.setLogin(dadosNovos.getLogin());
+        funcionarioExistente.setPerfil(dadosNovos.getPerfil());
+        funcionarioExistente.setDataAdmissao(dadosNovos.getDataAdmissao());
+
+        // Lógica da Senha: Só altera se o usuário digitou algo novo
+        if (dadosNovos.getSenha() != null && !dadosNovos.getSenha().isEmpty()) {
+            funcionarioExistente.setSenha(passwordEncoder.encode(dadosNovos.getSenha()));
+        }
+        // Se vier nula ou vazia, mantemos a 'funcionarioExistente.getSenha()' antiga
+
+        return funcionarioRepository.save(funcionarioExistente);
+    }
+
     public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
-    /**
-     * Busca um funcionário específico pelo seu ID.
-     * @param id O ID do funcionário.
-     * @return Um Optional contendo o Funcionário, se encontrado.
-     */
     public Optional<Funcionario> buscarPorId(Long id) {
         return funcionarioRepository.findById(id);
     }
 
-    /**
-     * Deleta um funcionário pelo seu ID.
-     * @param id O ID do funcionário a ser deletado.
-     */
     public void deletar(Long id) {
-        if (!funcionarioRepository.existsById(id)) {
-            throw new IllegalStateException("Funcionário com ID " + id + " não encontrado.");
-        }
         funcionarioRepository.deleteById(id);
     }
 }

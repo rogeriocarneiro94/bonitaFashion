@@ -1,0 +1,133 @@
+/* Local: src/components/Layout.css */
+
+:root {
+  --header-height: 60px;
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 70px;
+  --color-primary: #0078d4;
+  --color-bg: #f0f2f5;
+}
+
+/* 1. WRAPPER GERAL */
+/* Flex Row para colocar Sidebar à esquerda e Conteúdo à direita */
+.layout-wrapper {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  padding-top: var(--header-height); /* Empurra TUDO para baixo da barra azul */
+}
+
+/* 2. HEADER (Barra Azul) - O Chefe do Layout */
+.topbar {
+  position: fixed; /* Fixo em relação à janela */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background-color: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 2000; /* O MAIOR Z-INDEX: Fica por cima de tudo, inclusive do Sidebar */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.logo-area { font-weight: bold; font-size: 1.2rem; }
+.user-area { display: flex; align-items: center; gap: 15px; }
+
+/* 3. SIDEBAR (Menu Lateral) */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ocupa a altura disponível (100vh - 60px do padding-top do wrapper) */
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1000; /* Menor que o Header, Maior que o Conteúdo */
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* 4. CONTAINER PRINCIPAL */
+.main-container {
+  flex: 1; /* Ocupa o resto da largura */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 5. CONTEÚDO COM SCROLL */
+.content {
+  flex: 1;
+  overflow-y: auto; /* Scroll apenas aqui */
+  background-color: var(--color-bg);
+  padding: 0;
+}
+
+/* --- ESTILOS INTERNOS DA SIDEBAR --- */
+.sidebar-toggle {
+  margin-top: auto;
+  height: 50px;
+  background: #f8f9fa;
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #666;
+}
+.sidebar-toggle:hover { background: #e9ecef; }
+
+.sidebar nav ul { list-style: none; padding: 0; margin: 0; }
+
+.sidebar-link {
+  display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+  color: #4a4a4a; text-decoration: none; cursor: pointer;
+  border-left: 4px solid transparent; transition: all 0.2s;
+  white-space: nowrap; overflow: hidden;
+}
+.sidebar-link:hover { background: #f0f7ff; color: var(--color-primary); }
+.sidebar-link.active {
+  background: #e3effd; color: var(--color-primary);
+  font-weight: 600; border-left-color: var(--color-primary);
+}
+
+.link-icon { min-width: 24px; display: flex; justify-content: center; }
+.link-text { transition: opacity 0.2s; }
+
+/* Submenus */
+.submenu { background-color: #fafafa; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+.submenu-link {
+  display: flex; align-items: center; padding: 10px 20px 10px 56px;
+  color: #666; text-decoration: none; font-size: 0.9rem; transition: all 0.2s;
+}
+.submenu-link:hover { color: var(--color-primary); background: #fff; }
+.submenu-link.active { color: var(--color-primary); font-weight: bold; background: #fff; }
+
+/* Botão Sair no Header */
+.btn-logout-header {
+  background: rgba(255,255,255,0.2); padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
+  color: white; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+}
+.btn-logout-header:hover { background: rgba(255,255,255,0.3); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed; left: 0; top: var(--header-height); bottom: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  }
+  .sidebar.collapsed { transform: translateX(-100%); width: 0; }
+}
